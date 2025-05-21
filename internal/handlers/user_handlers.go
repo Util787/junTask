@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Util787/junTask/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,11 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 }
 
 func (h *Handler) createUser(c *gin.Context) {
-
+	var user database.User
+	err := c.BindJSON(&user)
+	if err != nil {
+		return
+	}
 }
 
 func (h *Handler) getUserById(c *gin.Context) {
