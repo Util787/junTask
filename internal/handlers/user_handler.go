@@ -1,9 +1,15 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"context"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (h *Handler) getAllUsers(c *gin.Context) {
+	h.services.UserService.GetAll(context.Background())
 
+	
 }
 
 func (h *Handler) createUser(c *gin.Context) {

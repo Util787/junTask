@@ -1,15 +1,24 @@
 package repository
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
 
-type UserRepository interface {
+	"github.com/Util787/junTask/internal/database"
+)
+
+type User interface {
+	GetAll(ctx context.Context) ([]database.User, error)
+	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
 }
 
-
 type Repository struct {
-	UserRepository
+	UserRepository User
 }
 
 func NewRepository(db *sql.DB) *Repository {
-	return &Repository{}
+	dbQueries := database.New(db)
+	return &Repository{
+		UserRepository: NewUserRepository(dbQueries),
+	}
 }

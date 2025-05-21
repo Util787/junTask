@@ -1,14 +1,23 @@
 package service
 
-import "github.com/Util787/junTask/internal/repository"
+import (
+	"context"
 
-type UserService interface {
+	"github.com/Util787/junTask/internal/database"
+	"github.com/Util787/junTask/internal/repository"
+)
+
+type User interface {
+	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
+	GetAll(ctx context.Context) ([]database.User, error)
 }
 
 type Service struct {
-	UserService
+	UserService User
 }
 
 func NewService(repos *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		UserService: NewUserService(repos.UserRepository),
+	}
 }

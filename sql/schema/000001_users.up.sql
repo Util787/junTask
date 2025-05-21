@@ -7,3 +7,7 @@ CREATE TABLE users(
     patronymic TEXT
 );
 
+-- using migrate 
+-- migrate -path sql/schema -database "DB_URL?sslmode=disable" up
+-- example: 
+-- migrate -path sql/schema -database "postgres://postgres:1111@localhost:5436/postgres?sslmode=disable" up
