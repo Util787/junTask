@@ -11,7 +11,7 @@ type ServerConfig struct {
 	Port string
 }
 
-func InitConfig() *ServerConfig {
+func InitServerConfig() *ServerConfig {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Failed to load .env file: ", err)

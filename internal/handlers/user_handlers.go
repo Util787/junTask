@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) getAllUsers(c *gin.Context) {
-	h.services.UserService.GetAll(context.Background())
-
-	
+	allUsers, err := h.services.UserService.GetAll(context.Background())
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	c.JSON(http.StatusOK, allUsers)
 }
 
 func (h *Handler) createUser(c *gin.Context) {
