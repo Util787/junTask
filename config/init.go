@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -11,15 +10,15 @@ type ServerConfig struct {
 	Port string
 }
 
-func InitServerConfig() *ServerConfig {
+func InitServerConfig() (*ServerConfig, error) {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Failed to load .env file: ", err)
+		return nil, err
 	}
 
 	return &ServerConfig{
 		Port: os.Getenv("SERVERPORT"),
-	}
+	}, nil
 }
 
 type DBConfig struct {
@@ -31,7 +30,7 @@ type DBConfig struct {
 	SSLMode  string
 }
 
-// didnt use godotenv.Load() here, init only after ServerConfig!
+// didnt use godotenv.Load() here, init only after InitServerConfig()!
 func InitDbConfig() *DBConfig {
 	return &DBConfig{
 		Host:     os.Getenv("DBHOST"),

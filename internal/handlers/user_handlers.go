@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
+	"log"
 	"net/http"
-	"time"
 
 	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,23 +26,23 @@ func (h *Handler) createUser(c *gin.Context) {
 	}
 
 	age, gender, nationality := requestUserAdditionalInfo(c, user.Name)
+	log.Println(user, age, gender, nationality)
+	// params := database.CreateUserParams{
+	// 	CreatedAt:   time.Now(),
+	// 	UpdatedAt:   time.Now(),
+	// 	Name:        user.Name,
+	// 	Surname:     user.Surname,
+	// 	Age:         age,
+	// 	Gender:      gender,
+	// 	Nationality: nationality,
+	// }
+	// if user.Patronymic == "" {
+	// 	params.Patronymic = sql.NullString{Valid: false}
+	// } else {
+	// 	params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
+	// }
 
-	params := database.CreateUserParams{
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		Name:        user.Name,
-		Surname:     user.Surname,
-		Age:         age,
-		Gender:      gender,
-		Nationality: nationality,
-	}
-	if user.Patronymic == "" {
-		params.Patronymic = sql.NullString{Valid: false}
-	} else {
-		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
-	}
-
-	h.services.UserService.Create(context.Background(), params)
+	// h.services.UserService.Create(context.Background(), params)
 }
 
 func (h *Handler) getUserById(c *gin.Context) {
