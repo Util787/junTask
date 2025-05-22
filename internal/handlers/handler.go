@@ -20,13 +20,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		lists := api.Group("/users")
+		users := api.Group("/users")
 		{
-			lists.GET("/", h.getAllUsers)
-			lists.POST("/", h.createUser)
-			lists.GET("/:user_id", h.getUserById)
-			lists.PUT("/:user_id", h.updateUser)
-			lists.DELETE("/:user_id", h.deleteUser)
+			users.GET("/", h.getAllUsers)
+			users.POST("/", h.createUser)
+			users.GET("/:user_id", h.getUserById)
+			users.PUT("/:user_id", h.updateUser)
+			users.DELETE("/:user_id", h.deleteUser)
 		}
 	}
 	return router

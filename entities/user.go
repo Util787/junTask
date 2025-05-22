@@ -10,3 +10,4 @@ type User struct {
 	Surname    string    `json:"surname" binding:"required"`
 	Patronymic string    `json:"patronymic"`
 }
+

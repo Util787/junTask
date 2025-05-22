@@ -10,7 +10,8 @@ import (
 )
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, created_at, updated_at, name, surname, patronymic, age, gender, nationality FROM users
+SELECT id, created_at, updated_at, name, surname, patronymic, age, gender, nationality 
+FROM users
 ORDER BY created_at DESC
 `
 

@@ -34,3 +34,7 @@ func (u *UserService) Exist(ctx context.Context, params database.UserExistsParam
 	}
 	return u.userRepo.Exist(ctx, params)
 }
+
+func (u *UserService) GetUserById(ctx context.Context, id int32) (database.User, error) {
+	return u.userRepo.GetUserById(ctx, id)
+}

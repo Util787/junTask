@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Util787/junTask/entities"
@@ -73,7 +74,20 @@ func (h *Handler) createUser(c *gin.Context) {
 }
 
 func (h *Handler) getUserById(c *gin.Context) {
+	userIdStr := c.Param("user_id")
+	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		return
+	}
 
+	user, err := h.services.UserService.GetUserById(context.Background(), int32(userID64))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func (h *Handler) updateUser(c *gin.Context) {

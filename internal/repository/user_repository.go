@@ -31,9 +31,17 @@ func (u *UserRepository) Create(ctx context.Context, params database.CreateUserP
 }
 
 func (u *UserRepository) Exist(ctx context.Context, params database.UserExistsParams) (bool, error) {
-	exist,err:=u.dbQueries.UserExists(ctx,params)
+	exist, err := u.dbQueries.UserExists(ctx, params)
 	if err != nil {
 		return false, err
 	}
 	return exist, nil
+}
+
+func (u *UserRepository) GetUserById(ctx context.Context, id int32) (database.User, error) {
+	user, err := u.dbQueries.GetUserById(ctx, id)
+	if err != nil {
+		return database.User{}, err
+	}
+	return user, nil
 }
