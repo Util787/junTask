@@ -1,3 +1,3 @@
 -- name: GetAllUsers :many
 SELECT * FROM users
-ORDER BY created_at ASC;
+ORDER BY created_at DESC;
