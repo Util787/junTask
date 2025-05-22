@@ -15,35 +15,23 @@ func NewUserRepository(dbQueries *database.Queries) *UserRepository {
 }
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]database.User, error) {
-	allUsers, err := u.dbQueries.GetAllUsers(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return allUsers, nil
+	return u.dbQueries.GetAllUsers(ctx)
 }
 
 func (u *UserRepository) Create(ctx context.Context, params database.CreateUserParams) (database.User, error) {
-	allUsers, err := u.dbQueries.CreateUser(ctx, params)
-	if err != nil {
-		return database.User{}, err
-	}
-	return allUsers, nil
+	return u.dbQueries.CreateUser(ctx, params)
 }
 
-func (u *UserRepository) Exist(ctx context.Context, params database.UserExistsParams) (bool, error) {
-	exist, err := u.dbQueries.UserExists(ctx, params)
-	if err != nil {
-		return false, err
-	}
-	return exist, nil
+func (u *UserRepository) ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error) {
+	return u.dbQueries.UserExistByFullName(ctx, params)
+}
+
+func (u *UserRepository) ExistById(ctx context.Context, id int32) (bool, error) {
+	return u.dbQueries.UserExistById(ctx, id)
 }
 
 func (u *UserRepository) GetUserById(ctx context.Context, id int32) (database.User, error) {
-	user, err := u.dbQueries.GetUserById(ctx, id)
-	if err != nil {
-		return database.User{}, err
-	}
-	return user, nil
+	return u.dbQueries.GetUserById(ctx, id)
 }
 
 func (u *UserRepository) UpdateUser(ctx context.Context, params database.UpdateUserParams) error {

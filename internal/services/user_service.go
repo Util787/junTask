@@ -16,23 +16,23 @@ func NewUserService(repo repository.User) *UserService {
 }
 
 func (u *UserService) Create(ctx context.Context, params database.CreateUserParams) (database.User, error) {
-	createdUser, err := u.userRepo.Create(ctx, params)
-	if err != nil {
-		return database.User{}, err
-	}
-	return createdUser, nil
+	return u.userRepo.Create(ctx, params)
 }
 
 func (u *UserService) GetAll(ctx context.Context) ([]database.User, error) {
 	return u.userRepo.GetAll(ctx)
 }
 
-func (u *UserService) Exist(ctx context.Context, params database.UserExistsParams) (bool, error) {
+func (u *UserService) ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error) {
 	// its wrong to check if patronymic is null because people might have same names and surnames
 	if params.Patronymic.String == "" {
 		return false, nil
 	}
-	return u.userRepo.Exist(ctx, params)
+	return u.userRepo.ExistByFullName(ctx, params)
+}
+
+func (u *UserService) ExistById(ctx context.Context, id int32) (bool, error) {
+	return u.userRepo.ExistById(ctx, id)
 }
 
 func (u *UserService) GetUserById(ctx context.Context, id int32) (database.User, error) {

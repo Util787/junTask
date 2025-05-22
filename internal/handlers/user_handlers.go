@@ -32,13 +32,13 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	exists, err := h.services.UserService.Exist(context.Background(), database.UserExistsParams{
+	exists, err := h.services.UserService.ExistByFullName(context.Background(), database.UserExistByFullNameParams{
 		Name:       user.Name,
 		Surname:    user.Surname,
 		Patronymic: sql.NullString{String: user.Patronymic, Valid: true},
 	})
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Error to check if the user exists")
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
 		return
 	}
 	if exists {
@@ -63,6 +63,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
 	}
 
+	// you can route this structure to entities.User struct if you want to control json tags
 	createdUser, err := h.services.UserService.Create(context.Background(), params)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -80,8 +81,10 @@ func (h *Handler) getUserById(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
+	userID32 := int32(userID64)
 
-	user, err := h.services.UserService.GetUserById(context.Background(), int32(userID64))
+	// you can route this structure to entities.User struct if you want to control json tags
+	user, err := h.services.UserService.GetUserById(context.Background(), userID32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
 		return
@@ -97,6 +100,23 @@ func (h *Handler) updateUser(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
+	userID32 := int32(userID64)
+
+	// exist, err := h.services.UserService.ExistById(context.Background(), userID32)
+	// if err != nil {
+	// 	newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
+	// 	return
+	// }
+	// if !exist {
+	// 	newErrorResponse(c, http.StatusBadRequest, "Cant update user that doesnt exist")
+	// 	return
+	// }
+
+	userBeforeUpdate, err := h.services.UserService.GetUserById(context.Background(), userID32)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		return
+	}
 
 	var user entities.UpdateUser
 	err = c.ShouldBindJSON(&user)
@@ -105,19 +125,48 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
+	// sqlc moment
+	name := user.Name
+	if name == "" {
+		name = userBeforeUpdate.Name
+	}
+
+	surname := user.Surname
+	if surname == "" {
+		surname = userBeforeUpdate.Surname
+	}
+
+	age := user.Age
+	if age == 0 {
+		age = userBeforeUpdate.Age
+	}
+
+	gender := user.Gender
+	if gender == "" {
+		gender = userBeforeUpdate.Gender
+	}
+
+	nationality := user.Nationality
+	if nationality == "" {
+		nationality = userBeforeUpdate.Nationality
+	}
+
+	var patronymic sql.NullString
+	if user.Patronymic == "" {
+		patronymic = sql.NullString{Valid: false}
+	} else {
+		patronymic = sql.NullString{String: user.Patronymic, Valid: true}
+	}
+
 	params := database.UpdateUserParams{
 		UpdatedAt:   time.Now(),
-		Name:        user.Name,
-		Surname:     user.Surname,
-		Age:         user.Age,
-		Gender:      user.Gender,
-		Nationality: user.Nationality,
-		ID:          int32(userID64),
-	}
-	if user.Patronymic == "" {
-		params.Patronymic = sql.NullString{Valid: false}
-	} else {
-		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
+		Name:        name,
+		Surname:     surname,
+		Patronymic:  patronymic,
+		Age:         age,
+		Gender:      gender,
+		Nationality: nationality,
+		ID:          userID32,
 	}
 
 	err = h.services.UserService.UpdateUser(context.Background(), params)
@@ -136,8 +185,19 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
+	userID32 := int32(userID64)
 
-	err = h.services.UserService.DeleteUser(context.Background(), int32(userID64))
+	exist, err := h.services.UserService.ExistById(context.Background(), userID32)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
+		return
+	}
+	if !exist {
+		newErrorResponse(c, http.StatusBadRequest, "Cant delete user that doesnt exist")
+		return
+	}
+
+	err = h.services.UserService.DeleteUser(context.Background(), userID32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
 		return

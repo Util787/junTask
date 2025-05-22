@@ -1,4 +1,4 @@
--- name: UserExists :one
+-- name: UserExistByFullName :one
 SELECT EXISTS (
     SELECT 1
     FROM users
