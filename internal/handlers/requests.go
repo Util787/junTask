@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -36,9 +35,8 @@ type countryInfo struct {
 }
 
 // func to make concurent api requests with timeout
-func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender string, nationality string, err error) {
+func requestUserAdditionalInfo(name string) (age int32, gender string, nationality string, err error) {
 
-	// todo: test if they are reachable from goroutines in errgroup
 	var ageResp agifyResponse
 	var genderResp genderizeResponse
 	var natResp nationalizeResponse

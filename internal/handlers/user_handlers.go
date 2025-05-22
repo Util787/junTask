@@ -19,7 +19,25 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	surname := c.Query("surname")
 	patronymic := c.Query("patronymic")
 	gender := c.Query("gender")
-	allUsers, err := h.services.UserService.GetAllUsers(context.Background())
+	limit, err := parseInt32(c.Query("limit"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Limit must be a number")
+		return
+	}
+	offset, err := parseInt32(c.Query("offset"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Offset must be a number")
+		return
+	}
+
+	allUsers, err := h.services.UserService.GetAllUsers(context.Background(), database.GetAllUsersParams{
+		Limit:      limit,
+		Offset:     offset,
+		Name:       name,
+		Surname:    surname,
+		Patronymic: patronymic,
+		Gender:     gender,
+	})
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -49,7 +67,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	age, gender, nationality, err := requestUserAdditionalInfo(c, user.Name)
+	age, gender, nationality, err := requestUserAdditionalInfo(user.Name)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable")
 		return
@@ -70,7 +88,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
 	}
 
-	// you can route this structure to entities.User struct if you want to control json tags
+	// you can route this structure parameters to entities.User struct if you want to control json tags
 	createdUser, err := h.services.UserService.CreateUser(context.Background(), params)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -83,15 +101,14 @@ func (h *Handler) createUser(c *gin.Context) {
 
 func (h *Handler) getUserById(c *gin.Context) {
 	userIdStr := c.Param("user_id")
-	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+	userId32, err := parseInt32(userIdStr)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
-	userID32 := int32(userID64)
 
-	// you can route this structure to entities.User struct if you want to control json tags
-	user, err := h.services.UserService.GetUserById(context.Background(), userID32)
+	// you can route this structure parameters to entities.User struct if you want to control json tags
+	user, err := h.services.UserService.GetUserById(context.Background(), userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
 		return
@@ -102,14 +119,14 @@ func (h *Handler) getUserById(c *gin.Context) {
 
 func (h *Handler) updateUser(c *gin.Context) {
 	userIdStr := c.Param("user_id")
-	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+
+	userId32, err := parseInt32(userIdStr)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
-	userID32 := int32(userID64)
 
-	userBeforeUpdate, err := h.services.UserService.GetUserById(context.Background(), userID32)
+	userBeforeUpdate, err := h.services.UserService.GetUserById(context.Background(), userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
 		return
@@ -163,7 +180,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 		Age:         age,
 		Gender:      gender,
 		Nationality: nationality,
-		ID:          userID32,
+		ID:          userId32,
 	}
 
 	err = h.services.UserService.UpdateUser(context.Background(), params)
@@ -177,14 +194,14 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 func (h *Handler) deleteUser(c *gin.Context) {
 	userIdStr := c.Param("user_id")
-	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+
+	userId32, err := parseInt32(userIdStr)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
 		return
 	}
-	userID32 := int32(userID64)
 
-	exist, err := h.services.UserService.ExistById(context.Background(), userID32)
+	exist, err := h.services.UserService.ExistById(context.Background(), userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
 		return
@@ -194,10 +211,18 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		return
 	}
 
-	err = h.services.UserService.DeleteUser(context.Background(), userID32)
+	err = h.services.UserService.DeleteUser(context.Background(), userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
+}
+
+func parseInt32(numStr string) (int32, error) {
+	parsedNum, err := strconv.ParseInt(numStr, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return int32(parsedNum), nil
 }
