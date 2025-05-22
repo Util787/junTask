@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	agifyURL       = "https://api.agify.io/"
+	agifyURL       = "https://api.agiwfy.io/"
 	genderizeURL   = "https://api.genderize.io/"
 	nationalizeURL = "https://api.nationalize.io/"
 )
@@ -36,7 +36,7 @@ type countryInfo struct {
 }
 
 // func to make concurent api requests with timeout
-func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender string, nationality string) {
+func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender string, nationality string, err error) {
 
 	// todo: test if they are reachable from goroutines in errgroup
 	var ageResp agifyResponse
@@ -76,8 +76,7 @@ func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender s
 	})
 
 	if err := errGr.Wait(); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable")
-		return
+		return 0, "", "", err
 	}
 
 	age = ageResp.Age
@@ -86,7 +85,7 @@ func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender s
 	if len(natResp.Country) > 0 {
 		nationality = natResp.Country[0].Country_id
 	}
-	return age, gender, nationality
+	return age, gender, nationality, nil
 }
 
 func requestUserAge(ctx context.Context, name string) (agifyResponse, error) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -46,8 +45,12 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	age, gender, nationality := requestUserAdditionalInfo(c, user.Name)
-	log.Println(user, age, gender, nationality)
+	age, gender, nationality, err := requestUserAdditionalInfo(c, user.Name)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable")
+		return
+	}
+
 	params := database.CreateUserParams{
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
