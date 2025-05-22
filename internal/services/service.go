@@ -12,6 +12,8 @@ type User interface {
 	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
 	Exist(ctx context.Context, params database.UserExistsParams) (bool, error)
 	GetUserById(ctx context.Context, id int32) (database.User, error)
+	UpdateUser(ctx context.Context, params database.UpdateUserParams) error
+	DeleteUser(ctx context.Context, id int32) error
 }
 
 type Service struct {

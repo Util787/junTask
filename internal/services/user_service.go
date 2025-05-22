@@ -38,3 +38,11 @@ func (u *UserService) Exist(ctx context.Context, params database.UserExistsParam
 func (u *UserService) GetUserById(ctx context.Context, id int32) (database.User, error) {
 	return u.userRepo.GetUserById(ctx, id)
 }
+
+func (u *UserService) UpdateUser(ctx context.Context, params database.UpdateUserParams) error {
+	return u.userRepo.UpdateUser(ctx, params)
+}
+
+func (u *UserService) DeleteUser(ctx context.Context, id int32) error {
+	return u.userRepo.DeleteUser(ctx, id)
+}

@@ -45,3 +45,11 @@ func (u *UserRepository) GetUserById(ctx context.Context, id int32) (database.Us
 	}
 	return user, nil
 }
+
+func (u *UserRepository) UpdateUser(ctx context.Context, params database.UpdateUserParams) error {
+	return u.dbQueries.UpdateUser(ctx, params)
+}
+
+func (u *UserRepository) DeleteUser(ctx context.Context, id int32) error {
+	return u.dbQueries.DeleteUser(ctx, id)
+}

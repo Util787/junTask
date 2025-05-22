@@ -91,9 +91,56 @@ func (h *Handler) getUserById(c *gin.Context) {
 }
 
 func (h *Handler) updateUser(c *gin.Context) {
+	userIdStr := c.Param("user_id")
+	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		return
+	}
 
+	var user entities.UpdateUser
+	err = c.ShouldBindJSON(&user)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in updateUser handler")
+		return
+	}
+
+	params := database.UpdateUserParams{
+		UpdatedAt:   time.Now(),
+		Name:        user.Name,
+		Surname:     user.Surname,
+		Age:         user.Age,
+		Gender:      user.Gender,
+		Nationality: user.Nationality,
+		ID:          int32(userID64),
+	}
+	if user.Patronymic == "" {
+		params.Patronymic = sql.NullString{Valid: false}
+	} else {
+		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
+	}
+
+	err = h.services.UserService.UpdateUser(context.Background(), params)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to update user")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
 func (h *Handler) deleteUser(c *gin.Context) {
+	userIdStr := c.Param("user_id")
+	userID64, err := strconv.ParseInt(userIdStr, 10, 32)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		return
+	}
 
+	err = h.services.UserService.DeleteUser(context.Background(), int32(userID64))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
 }
