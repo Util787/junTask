@@ -15,7 +15,11 @@ import (
 )
 
 func (h *Handler) getAllUsers(c *gin.Context) {
-	allUsers, err := h.services.UserService.GetAll(context.Background())
+	name := c.Query("name")
+	surname := c.Query("surname")
+	patronymic := c.Query("patronymic")
+	gender := c.Query("gender")
+	allUsers, err := h.services.UserService.GetAllUsers(context.Background())
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -67,7 +71,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	}
 
 	// you can route this structure to entities.User struct if you want to control json tags
-	createdUser, err := h.services.UserService.Create(context.Background(), params)
+	createdUser, err := h.services.UserService.CreateUser(context.Background(), params)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -118,7 +122,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	// So if json parameter in body is empty sqlc will put zerovalue in column, couldnt find any way to fix it so I chose to check it manualy
+	// if json parameter in body is empty sqlc will put zerovalue in column, couldnt find any way to fix it so the only way is to check it manualy
 	name := user.Name
 	if name == "" {
 		name = userBeforeUpdate.Name

@@ -8,8 +8,8 @@ import (
 )
 
 type User interface {
-	GetAll(ctx context.Context) ([]database.User, error)
-	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
+	GetAllUsers(ctx context.Context, params database.GetAllUsersParams) ([]database.User, error)
+	CreateUser(ctx context.Context, params database.CreateUserParams) (database.User, error)
 	ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error)
 	ExistById(ctx context.Context, id int32) (bool, error)
 	GetUserById(ctx context.Context, id int32) (database.User, error)

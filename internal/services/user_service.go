@@ -15,12 +15,12 @@ func NewUserService(repo repository.User) *UserService {
 	return &UserService{userRepo: repo}
 }
 
-func (u *UserService) Create(ctx context.Context, params database.CreateUserParams) (database.User, error) {
-	return u.userRepo.Create(ctx, params)
+func (u *UserService) CreateUser(ctx context.Context, params database.CreateUserParams) (database.User, error) {
+	return u.userRepo.CreateUser(ctx, params)
 }
 
-func (u *UserService) GetAll(ctx context.Context) ([]database.User, error) {
-	return u.userRepo.GetAll(ctx)
+func (u *UserService) GetAllUsers(ctx context.Context, params database.GetAllUsersParams) ([]database.User, error) {
+	return u.userRepo.GetAllUsers(ctx, params)
 }
 
 func (u *UserService) ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error) {

@@ -14,11 +14,11 @@ func NewUserRepository(dbQueries *database.Queries) *UserRepository {
 	return &UserRepository{dbQueries: dbQueries}
 }
 
-func (u *UserRepository) GetAll(ctx context.Context) ([]database.User, error) {
-	return u.dbQueries.GetAllUsers(ctx)
+func (u *UserRepository) GetAllUsers(ctx context.Context, params database.GetAllUsersParams) ([]database.User, error) {
+	return u.dbQueries.GetAllUsers(ctx, params)
 }
 
-func (u *UserRepository) Create(ctx context.Context, params database.CreateUserParams) (database.User, error) {
+func (u *UserRepository) CreateUser(ctx context.Context, params database.CreateUserParams) (database.User, error) {
 	return u.dbQueries.CreateUser(ctx, params)
 }
 

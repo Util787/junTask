@@ -10,13 +10,35 @@ import (
 )
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, created_at, updated_at, name, surname, patronymic, age, gender, nationality 
+SELECT id, created_at, updated_at, name, surname, patronymic, age, gender, nationality
 FROM users
+WHERE 
+  ($3::text IS NULL OR name ILIKE '%' || $3 || '%') AND
+  ($4::text IS NULL OR surname ILIKE '%' || $4 || '%') AND
+  ($5::text IS NULL OR patronymic ILIKE '%' || $5 || '%') AND
+  ($6::text IS NULL OR gender = $6) 
 ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getAllUsers)
+type GetAllUsersParams struct {
+	Limit      int32
+	Offset     int32
+	Name       string
+	Surname    string
+	Patronymic string
+	Gender     string
+}
+
+func (q *Queries) GetAllUsers(ctx context.Context, arg GetAllUsersParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getAllUsers,
+		arg.Limit,
+		arg.Offset,
+		arg.Name,
+		arg.Surname,
+		arg.Patronymic,
+		arg.Gender,
+	)
 	if err != nil {
 		return nil, err
 	}
