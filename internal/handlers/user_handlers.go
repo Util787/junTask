@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/Util787/junTask/entities"
+	"github.com/Util787/junTask/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,13 +20,31 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 }
 
 func (h *Handler) createUser(c *gin.Context) {
+	// using entities.User instead of database.User is important because of tags
 	var user entities.User
 	err := c.BindJSON(&user)
 	if err != nil {
 		return
 	}
 
-	requestUserAdditionalInfo(c,user.Name)
+	age, gender, nationality := requestUserAdditionalInfo(c, user.Name)
+
+	params := database.CreateUserParams{
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		Name:        user.Name,
+		Surname:     user.Surname,
+		Age:         age,
+		Gender:      gender,
+		Nationality: nationality,
+	}
+	if user.Patronymic == "" {
+		params.Patronymic = sql.NullString{Valid: false}
+	} else {
+		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
+	}
+
+	h.services.UserService.Create(context.Background(), params)
 }
 
 func (h *Handler) getUserById(c *gin.Context) {

@@ -4,7 +4,10 @@ CREATE TABLE users(
     updated_at TIMESTAMPTZ NOT NULL,
     name TEXT NOT NULL,
     surname TEXT NOT NULL,
-    patronymic TEXT
+    patronymic TEXT,
+    age INT NOT NULL,
+    gender TEXT NOT NULL,
+    nationality TEXT NOT NULL
 );
 
 -- using migrate 

@@ -10,10 +10,13 @@ import (
 )
 
 type User struct {
-	ID         int32
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	Name       string
-	Surname    string
-	Patronymic sql.NullString
+	ID          int32
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Name        string
+	Surname     string
+	Patronymic  sql.NullString
+	Age         int32
+	Gender      string
+	Nationality string
 }

@@ -19,7 +19,7 @@ const (
 )
 
 type agifyResponse struct {
-	Age int `json:"age"`
+	Age int32 `json:"age"`
 }
 
 type genderizeResponse struct {
@@ -36,7 +36,7 @@ type countryInfo struct {
 }
 
 // func to make concurent api requests with timeout
-func requestUserAdditionalInfo(c *gin.Context, name string) (age int, gender string, nationality string) {
+func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender string, nationality string) {
 
 	// todo: test if they are reachable from goroutines in errgroup
 	var ageResp agifyResponse
