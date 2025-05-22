@@ -102,16 +102,6 @@ func (h *Handler) updateUser(c *gin.Context) {
 	}
 	userID32 := int32(userID64)
 
-	// exist, err := h.services.UserService.ExistById(context.Background(), userID32)
-	// if err != nil {
-	// 	newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
-	// 	return
-	// }
-	// if !exist {
-	// 	newErrorResponse(c, http.StatusBadRequest, "Cant update user that doesnt exist")
-	// 	return
-	// }
-
 	userBeforeUpdate, err := h.services.UserService.GetUserById(context.Background(), userID32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
@@ -125,7 +115,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	// sqlc moment
+	// So if json parameter in body is empty sqlc will put zerovalue in column, couldnt find any way to fix it so I chose to check it manualy
 	name := user.Name
 	if name == "" {
 		name = userBeforeUpdate.Name
@@ -153,7 +143,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 	var patronymic sql.NullString
 	if user.Patronymic == "" {
-		patronymic = sql.NullString{Valid: false}
+		patronymic = sql.NullString{String: userBeforeUpdate.Patronymic.String, Valid: userBeforeUpdate.Patronymic.Valid}
 	} else {
 		patronymic = sql.NullString{String: user.Patronymic, Valid: true}
 	}
