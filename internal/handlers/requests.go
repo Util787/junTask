@@ -76,7 +76,7 @@ func requestUserAdditionalInfo(c *gin.Context, name string) (age int32, gender s
 	})
 
 	if err := errGr.Wait(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "requests time out or unreachable"})
+		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable")
 		return
 	}
 

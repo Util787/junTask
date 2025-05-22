@@ -29,3 +29,11 @@ func (u *UserRepository) Create(ctx context.Context, params database.CreateUserP
 	}
 	return allUsers, nil
 }
+
+func (u *UserRepository) Exist(ctx context.Context, params database.UserExistsParams) (bool, error) {
+	exist,err:=u.dbQueries.UserExists(ctx,params)
+	if err != nil {
+		return false, err
+	}
+	return exist, nil
+}

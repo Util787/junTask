@@ -16,9 +16,11 @@ func NewHandlers(services *service.Service) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
+	router.Use(gin.Logger())
+
 	api := router.Group("/api")
 	{
-		lists := api.Group("/user")
+		lists := api.Group("/users")
 		{
 			lists.GET("/", h.getAllUsers)
 			lists.POST("/", h.createUser)

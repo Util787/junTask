@@ -26,3 +26,11 @@ func (u *UserService) Create(ctx context.Context, params database.CreateUserPara
 func (u *UserService) GetAll(ctx context.Context) ([]database.User, error) {
 	return u.userRepo.GetAll(ctx)
 }
+
+func (u *UserService) Exist(ctx context.Context, params database.UserExistsParams) (bool, error) {
+	// its wrong to check if patronymic is null because people might have same names and surnames
+	if params.Patronymic.String == "" {
+		return false, nil
+	}
+	return u.userRepo.Exist(ctx, params)
+}

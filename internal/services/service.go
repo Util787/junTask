@@ -8,8 +8,9 @@ import (
 )
 
 type User interface {
-	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
 	GetAll(ctx context.Context) ([]database.User, error)
+	Create(ctx context.Context, params database.CreateUserParams) (database.User, error)
+	Exist(ctx context.Context, params database.UserExistsParams) (bool, error)
 }
 
 type Service struct {
