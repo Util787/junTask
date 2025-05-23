@@ -16,7 +16,7 @@ Updating parameters might be provided partically without changing the record ent
 1.Clone repo
 
 ``` 
-git clone github.com/Util787/junTask
+git clone https://github.com/Util787/junTask
 ```
 
 2.Configure .env variables
