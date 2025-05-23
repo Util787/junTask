@@ -6,13 +6,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/Util787/junTask/config"
 	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/database"
 	"github.com/Util787/junTask/internal/handlers"
 	"github.com/Util787/junTask/internal/repository"
 	service "github.com/Util787/junTask/internal/services"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,12 +21,12 @@ func main() {
 	if err != nil {
 		logrus.Fatal("Failed to initialize server config. Make sure all required .env variables are set.")
 	}
-
+	
 	dbConfig := config.InitDbConfig()
 
-	postgresDB, err := database.NewPostgresDB(*dbConfig)
+	postgresDB, err := repository.NewPostgresDB(*dbConfig)
 	if err != nil {
-		logrus.Fatal("Failed to connect to db")
+		logrus.Fatal("Failed to connect to db: ", err)
 	}
 	repos := repository.NewRepository(postgresDB)
 	services := service.NewService(repos)

@@ -25,7 +25,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			users.GET("/", h.getAllUsers)
 			users.POST("/", h.createUser)
 			users.GET("/:user_id", h.getUserById)
-			users.PUT("/:user_id", h.updateUser)
+			users.PATCH("/:user_id", h.updateUser)
 			users.DELETE("/:user_id", h.deleteUser)
 		}
 	}

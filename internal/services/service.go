@@ -1,20 +1,18 @@
 package service
 
 import (
-	"context"
-
-	"github.com/Util787/junTask/internal/database"
+	"github.com/Util787/junTask/entities"
 	"github.com/Util787/junTask/internal/repository"
 )
 
 type User interface {
-	GetAllUsers(ctx context.Context, params database.GetAllUsersParams) ([]database.User, error)
-	CreateUser(ctx context.Context, params database.CreateUserParams) (database.User, error)
-	ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error)
-	ExistById(ctx context.Context, id int32) (bool, error)
-	GetUserById(ctx context.Context, id int32) (database.User, error)
-	UpdateUser(ctx context.Context, params database.UpdateUserParams) error
-	DeleteUser(ctx context.Context, id int32) error
+	GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error)
+	CreateUser(params entities.User) (entities.User, error)
+	ExistByFullName(params entities.FullName) (bool, error)
+	ExistById(id int32) (bool, error)
+	GetUserById(id int32) (entities.User, error)
+	UpdateUser(params entities.UpdateUserParams) error
+	DeleteUser(id int32) error
 }
 
 type Service struct {

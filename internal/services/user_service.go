@@ -1,9 +1,7 @@
 package service
 
 import (
-	"context"
-
-	"github.com/Util787/junTask/internal/database"
+	"github.com/Util787/junTask/entities"
 	"github.com/Util787/junTask/internal/repository"
 )
 
@@ -15,34 +13,34 @@ func NewUserService(repo repository.User) *UserService {
 	return &UserService{userRepo: repo}
 }
 
-func (u *UserService) CreateUser(ctx context.Context, params database.CreateUserParams) (database.User, error) {
-	return u.userRepo.CreateUser(ctx, params)
+func (u *UserService) CreateUser(params entities.User) (entities.User, error) {
+	return u.userRepo.CreateUser(params)
 }
 
-func (u *UserService) GetAllUsers(ctx context.Context, params database.GetAllUsersParams) ([]database.User, error) {
-	return u.userRepo.GetAllUsers(ctx, params)
+func (u *UserService) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
+	return u.userRepo.GetAllUsers(limit, offset, name, surname, patronymic, gender)
 }
 
-func (u *UserService) ExistByFullName(ctx context.Context, params database.UserExistByFullNameParams) (bool, error) {
-	// its wrong to check if patronymic is null because people might have same names and surnames
-	if params.Patronymic.String == "" {
+func (u *UserService) ExistByFullName(params entities.FullName) (bool, error) {
+	// its wrong to check existance if patronymic is null because people might have same names and surnames
+	if params.Patronymic == "" {
 		return false, nil
 	}
-	return u.userRepo.ExistByFullName(ctx, params)
+	return u.userRepo.ExistByFullName(params)
 }
 
-func (u *UserService) ExistById(ctx context.Context, id int32) (bool, error) {
-	return u.userRepo.ExistById(ctx, id)
+func (u *UserService) ExistById(id int32) (bool, error) {
+	return u.userRepo.ExistById(id)
 }
 
-func (u *UserService) GetUserById(ctx context.Context, id int32) (database.User, error) {
-	return u.userRepo.GetUserById(ctx, id)
+func (u *UserService) GetUserById(id int32) (entities.User, error) {
+	return u.userRepo.GetUserById(id)
 }
 
-func (u *UserService) UpdateUser(ctx context.Context, params database.UpdateUserParams) error {
-	return u.userRepo.UpdateUser(ctx, params)
+func (u *UserService) UpdateUser(params entities.UpdateUserParams) error {
+	return u.userRepo.UpdateUser(params)
 }
 
-func (u *UserService) DeleteUser(ctx context.Context, id int32) error {
-	return u.userRepo.DeleteUser(ctx, id)
+func (u *UserService) DeleteUser(id int32) error {
+	return u.userRepo.DeleteUser(id)
 }

@@ -6,7 +6,7 @@ CREATE TABLE users(
     surname TEXT NOT NULL,
     patronymic TEXT,
     age INT NOT NULL,
-    gender TEXT NOT NULL,
+    gender TEXT NOT NULL CHECK (gender IN ('male', 'female')),
     nationality TEXT NOT NULL
 );
 

@@ -1,116 +1,102 @@
 package handlers
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
+	"unicode"
 
 	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) getAllUsers(c *gin.Context) {
-	name := c.Query("name")
-	surname := c.Query("surname")
-	patronymic := c.Query("patronymic")
-	gender := c.Query("gender")
-	limit, err := parseInt32(c.Query("limit"))
+	name := c.DefaultQuery("name", "")
+	surname := c.DefaultQuery("surname", "")
+	patronymic := c.DefaultQuery("patronymic", "")
+	gender := c.DefaultQuery("gender", "")
+	limitStr := c.DefaultQuery("limit", "0")
+	parsedLimit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Limit must be a number")
-		return
+		parsedLimit = 0
 	}
-	offset, err := parseInt32(c.Query("offset"))
+	offsetStr := c.DefaultQuery("offset", "0")
+	parsedOffset, err := strconv.Atoi(offsetStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Offset must be a number")
-		return
+		parsedOffset = 0
 	}
 
-	allUsers, err := h.services.UserService.GetAllUsers(context.Background(), database.GetAllUsersParams{
-		Limit:      limit,
-		Offset:     offset,
-		Name:       name,
-		Surname:    surname,
-		Patronymic: patronymic,
-		Gender:     gender,
-	})
+	allUsers, err := h.services.UserService.GetAllUsers(int(parsedLimit), int(parsedOffset), name, surname, patronymic, gender)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, "uncorrect query params", err)
 	}
 	c.JSON(http.StatusOK, allUsers)
 }
 
 func (h *Handler) createUser(c *gin.Context) {
-	// using entities.User instead of database.User is important to use binding tags
 	var user entities.User
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in createUser handler")
+		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in createUser handler: ", err)
 		return
 	}
 
-	exists, err := h.services.UserService.ExistByFullName(context.Background(), database.UserExistByFullNameParams{
+	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
+		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic mustn contain digits", err)
+		return
+	}
+
+	exists, err := h.services.UserService.ExistByFullName(entities.FullName{
 		Name:       user.Name,
 		Surname:    user.Surname,
-		Patronymic: sql.NullString{String: user.Patronymic, Valid: true},
+		Patronymic: user.Patronymic,
 	})
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
 	}
 	if exists {
-		newErrorResponse(c, http.StatusBadRequest, "User already exists")
+		newErrorResponse(c, http.StatusBadRequest, "User already exists", err)
 		return
 	}
 
 	age, gender, nationality, err := requestUserAdditionalInfo(user.Name)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable")
+		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable", err)
 		return
 	}
 
-	params := database.CreateUserParams{
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	params := entities.User{
 		Name:        user.Name,
 		Surname:     user.Surname,
+		Patronymic:  user.Patronymic,
 		Age:         age,
 		Gender:      gender,
 		Nationality: nationality,
 	}
-	if user.Patronymic == "" {
-		params.Patronymic = sql.NullString{Valid: false}
-	} else {
-		params.Patronymic = sql.NullString{String: user.Patronymic, Valid: true}
-	}
 
-	// you can route this structure parameters to entities.User struct if you want to control json tags
-	createdUser, err := h.services.UserService.CreateUser(context.Background(), params)
+	createdUser, err := h.services.UserService.CreateUser(params)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 	logrus.Println("Created user: ", createdUser)
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.ID)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
 }
 
 func (h *Handler) getUserById(c *gin.Context) {
 	userIdStr := c.Param("user_id")
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
-	// you can route this structure parameters to entities.User struct if you want to control json tags
-	user, err := h.services.UserService.GetUserById(context.Background(), userId32)
+	user, err := h.services.UserService.GetUserById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		newErrorResponse(c, http.StatusBadRequest, "Cant find user", err)
 		return
 	}
 
@@ -122,70 +108,45 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
-	userBeforeUpdate, err := h.services.UserService.GetUserById(context.Background(), userId32)
+	exists, err := h.services.UserService.ExistById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		newErrorResponse(c, http.StatusBadRequest, "Failed to check if the user exists", err)
+		return
+	}
+	if !exists {
+		newErrorResponse(c, http.StatusBadRequest, "Cant update user that doesnt exist", err)
 		return
 	}
 
-	var user entities.UpdateUser
+	var user entities.UpdateUserParams
 	err = c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in updateUser handler")
+		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in updateUser handler", err)
 		return
 	}
 
-	// if json parameter in body is empty sqlc will put zerovalue in column, couldnt find any way to fix it so the only way is to check it manualy
-	name := user.Name
-	if name == "" {
-		name = userBeforeUpdate.Name
+	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
+		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic mustn contain digits", err)
+		return
 	}
 
-	surname := user.Surname
-	if surname == "" {
-		surname = userBeforeUpdate.Surname
+	params := entities.UpdateUserParams{
+		Name:        user.Name,
+		Surname:     user.Surname,
+		Patronymic:  user.Patronymic,
+		Age:         user.Age,
+		Gender:      user.Gender,
+		Nationality: user.Nationality,
+		Id:          userId32,
 	}
 
-	age := user.Age
-	if age == 0 {
-		age = userBeforeUpdate.Age
-	}
-
-	gender := user.Gender
-	if gender == "" {
-		gender = userBeforeUpdate.Gender
-	}
-
-	nationality := user.Nationality
-	if nationality == "" {
-		nationality = userBeforeUpdate.Nationality
-	}
-
-	var patronymic sql.NullString
-	if user.Patronymic == "" {
-		patronymic = sql.NullString{String: userBeforeUpdate.Patronymic.String, Valid: userBeforeUpdate.Patronymic.Valid}
-	} else {
-		patronymic = sql.NullString{String: user.Patronymic, Valid: true}
-	}
-
-	params := database.UpdateUserParams{
-		UpdatedAt:   time.Now(),
-		Name:        name,
-		Surname:     surname,
-		Patronymic:  patronymic,
-		Age:         age,
-		Gender:      gender,
-		Nationality: nationality,
-		ID:          userId32,
-	}
-
-	err = h.services.UserService.UpdateUser(context.Background(), params)
+	err = h.services.UserService.UpdateUser(params)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to update user")
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
 
@@ -197,23 +158,23 @@ func (h *Handler) deleteUser(c *gin.Context) {
 
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number")
+		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
-	exist, err := h.services.UserService.ExistById(context.Background(), userId32)
+	exist, err := h.services.UserService.ExistById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists")
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
 	}
 	if !exist {
-		newErrorResponse(c, http.StatusBadRequest, "Cant delete user that doesnt exist")
+		newErrorResponse(c, http.StatusBadRequest, "Cant delete user that doesnt exist", err)
 		return
 	}
 
-	err = h.services.UserService.DeleteUser(context.Background(), userId32)
+	err = h.services.UserService.DeleteUser(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Cant find user")
+		newErrorResponse(c, http.StatusBadRequest, "Cant find user", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
@@ -225,4 +186,13 @@ func parseInt32(numStr string) (int32, error) {
 		return 0, err
 	}
 	return int32(parsedNum), nil
+}
+
+func haveDigits(s string) bool {
+	for _, r := range s {
+		if unicode.IsDigit(r) {
+			return true
+		}
+	}
+	return false
 }

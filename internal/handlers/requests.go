@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	agifyURL       = "https://api.agiwfy.io/"
+	agifyURL       = "https://api.agify.io/"
 	genderizeURL   = "https://api.genderize.io/"
 	nationalizeURL = "https://api.nationalize.io/"
 )
 
 type agifyResponse struct {
-	Age int32 `json:"age"`
+	Age int `json:"age"`
 }
 
 type genderizeResponse struct {
@@ -35,7 +35,7 @@ type countryInfo struct {
 }
 
 // func to make concurent api requests with timeout
-func requestUserAdditionalInfo(name string) (age int32, gender string, nationality string, err error) {
+func requestUserAdditionalInfo(name string) (age int, gender string, nationality string, err error) {
 
 	var ageResp agifyResponse
 	var genderResp genderizeResponse
