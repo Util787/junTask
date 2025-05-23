@@ -11,6 +11,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// getAllUsers godoc
+// @Summary      get all users with optionally filters and pagination
+// @Description  Get users using flexible query filters and pagination. You can provide partial values for `name`, `surname`, or `patronymic` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.
+// @Description  Example: ?limit=5&offset=10
+// @Description  Response: 5 users with offset=10
+// @Description  Example: ?name=al
+// @Description  Response: Alex, Alina, etc.
+// @Description  Example2: ?name=al&surname=sh
+// @Description  Response: Alexandr Shprot, Alina Sham, etc.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        name        query     string  false "name filter"
+// @Param        surname     query     string  false "surname filter"
+// @Param        patronymic  query     string  false "patronymic filter"
+// @Param        gender      query     string  false  "gender filter can be only male or female"
+// @Param        limit       query     int     false  "default:0"
+// @Param        offset      query     int     false  "default:0"
+// @Success      200  {array}  entities.User
+// @Failure      400  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Router       /users [get]
 func (h *Handler) getAllUsers(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 	surname := c.DefaultQuery("surname", "")
@@ -33,14 +55,26 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	allUsers, err := h.services.UserService.GetAllUsers(int(parsedLimit), int(parsedOffset), name, surname, patronymic, gender)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "Failed to get users", err)
+		return
 	}
 	logrus.Debugf("Got %d users ", len(allUsers))
 
 	c.JSON(http.StatusOK, allUsers)
 }
 
+// createUser godoc
+// @Summary      create user
+// @Description  creating new user with provided name, surname, patronymic(optional)
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        fullname  body  entities.FullName  true  "Users fullname: name, surname, patronymic(optional)"
+// @Success      201  {object}  map[string]string "message with created user's id"
+// @Failure      400  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Router       /users [post]
 func (h *Handler) createUser(c *gin.Context) {
-	var user entities.User
+	var user entities.FullName
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in createUser handler: ", err)
@@ -93,6 +127,16 @@ func (h *Handler) createUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
 }
 
+// getUserById godoc
+// @Summary      get user by id
+// @Description  recieve user info by providing id in path
+// @Tags         users
+// @Produce      json
+// @Param        user_id  path      int  true "user_id"
+// @Success      200      {object}  entities.User
+// @Failure      400      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /users/{user_id} [get]
 func (h *Handler) getUserById(c *gin.Context) {
 	userIdStr := c.Param("user_id")
 	userId32, err := parseInt32(userIdStr)
@@ -112,6 +156,18 @@ func (h *Handler) getUserById(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// updateUser godoc
+// @Summary      update user info by id
+// @Description  updating user info by id provided in path. In request body you can optionally provide: name, surname, patronymic, age, gender, nationality. Update_at will change automatically
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user_id  path      int                     true "user_id"
+// @Param        user     body      entities.UpdateUserParams  true "parameters for update"
+// @Success      200      {object}  map[string]string       "message about user update"
+// @Failure      400      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /users/{user_id} [patch]
 func (h *Handler) updateUser(c *gin.Context) {
 	userIdStr := c.Param("user_id")
 
@@ -164,6 +220,17 @@ func (h *Handler) updateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
+// deleteUser godoc
+// @Summary      delete user by id
+// @Description  deleting user by id if exists
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user_id  path      int  true "user_id"
+// @Success      200      {object}  map[string]string  "successful deleting message"
+// @Failure      400      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /users/{user_id} [delete]
 func (h *Handler) deleteUser(c *gin.Context) {
 	userIdStr := c.Param("user_id")
 

@@ -1,0 +1,253 @@
+basePath: /api
+definitions:
+  entities.FullName:
+    properties:
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    required:
+    - name
+    - surname
+    type: object
+  entities.UpdateUserParams:
+    properties:
+      age:
+        type: integer
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nationality:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entities.User:
+    properties:
+      age:
+        type: integer
+      created_at:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nationality:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - name
+    - surname
+    type: object
+  handlers.errorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: Junior Golang Developer test task for Effective Mobile
+  title: Jun task api
+  version: "1.0"
+paths:
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Get users using flexible query filters and pagination. You can provide partial values for `name`, `surname`, or `patronymic` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.
+        Example: ?limit=5&offset=10
+        Response: 5 users with offset=10
+        Example: ?name=al
+        Response: Alex, Alina, etc.
+        Example2: ?name=al&surname=sh
+        Response: Alexandr Shprot, Alina Sham, etc.
+      parameters:
+      - description: name filter
+        in: query
+        name: name
+        type: string
+      - description: surname filter
+        in: query
+        name: surname
+        type: string
+      - description: patronymic filter
+        in: query
+        name: patronymic
+        type: string
+      - description: gender filter can be only male or female
+        in: query
+        name: gender
+        type: string
+      - description: default:0
+        in: query
+        name: limit
+        type: integer
+      - description: default:0
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: get all users with optionally filters and pagination
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: creating new user with provided name, surname, patronymic(optional)
+      parameters:
+      - description: 'Users fullname: name, surname, patronymic(optional)'
+        in: body
+        name: fullname
+        required: true
+        schema:
+          $ref: '#/definitions/entities.FullName'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: message with created user's id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: create user
+      tags:
+      - users
+  /users/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: deleting user by id if exists
+      parameters:
+      - description: user_id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful deleting message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: delete user by id
+      tags:
+      - users
+    get:
+      description: recieve user info by providing id in path
+      parameters:
+      - description: user_id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: get user by id
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: 'updating user info by id provided in path. In request body you
+        can optionally provide: name, surname, patronymic, age, gender, nationality.
+        Update_at will change automatically'
+      parameters:
+      - description: user_id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: parameters for update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/entities.UpdateUserParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: message about user update
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: update user info by id
+      tags:
+      - users
+swagger: "2.0"

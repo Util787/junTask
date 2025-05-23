@@ -16,12 +16,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @title           Jun task api
+// @version         1.0
+// @description     Junior Golang Developer test task for Effective Mobile
+
+// @host      localhost:8000
+// @BasePath  /api
+
 func main() {
 	servConfig, err := config.InitServerConfig()
 	if err != nil {
 		logrus.Fatal("Failed to initialize server config. Make sure all required .env variables are set.")
 	}
-	
+
 	dbConfig := config.InitDbConfig()
 
 	postgresDB, err := repository.NewPostgresDB(*dbConfig)
