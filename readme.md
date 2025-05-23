@@ -20,6 +20,7 @@ git clone https://github.com/Util787/junTask
 ```
 
 2.Configure .env variables
+
 Example:
 
 ```
