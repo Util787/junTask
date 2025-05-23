@@ -118,23 +118,6 @@ func (u *UserRepository) UpdateUser(params entities.UpdateUserParams) error {
 	return err
 }
 
-// func (u *UserRepository) UpdateUser(params entities.UpdateUserParams) error {
-// 	query := `UPDATE users SET
-// 		updated_at = :updated_at,
-// 		name = :name,
-// 		surname = :surname,
-// 		patronymic = :patronymic,
-// 		age = :age,
-// 		gender = :gender,
-// 		nationality = :nationality
-// 		WHERE id = :id`
-
-// 	params.Updated_at = time.Now()
-
-// 	_, err := u.db.NamedExec(query, params)
-// 	return err
-// }
-
 func (u *UserRepository) DeleteUser(id int32) error {
 	query := `DELETE FROM users WHERE id = $1`
 	_, err := u.db.Exec(query, id)
