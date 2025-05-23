@@ -16,21 +16,26 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	surname := c.DefaultQuery("surname", "")
 	patronymic := c.DefaultQuery("patronymic", "")
 	gender := c.DefaultQuery("gender", "")
+
 	limitStr := c.DefaultQuery("limit", "0")
 	parsedLimit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		parsedLimit = 0
 	}
+
 	offsetStr := c.DefaultQuery("offset", "0")
 	parsedOffset, err := strconv.Atoi(offsetStr)
 	if err != nil {
 		parsedOffset = 0
 	}
 
+	logrus.Infof("Requested to get all users with queries: limit:%d offset:%d name:%s surname:%s patronymic:%s gender:%s", parsedLimit, parsedOffset, name, surname, patronymic, gender)
 	allUsers, err := h.services.UserService.GetAllUsers(int(parsedLimit), int(parsedOffset), name, surname, patronymic, gender)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "uncorrect query params", err)
+		newErrorResponse(c, http.StatusInternalServerError, "Failed to get users", err)
 	}
+	logrus.Debugf("Got %d users ", len(allUsers))
+
 	c.JSON(http.StatusOK, allUsers)
 }
 
@@ -43,7 +48,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	}
 
 	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
-		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic mustn contain digits", err)
+		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", err)
 		return
 	}
 
@@ -66,6 +71,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable", err)
 		return
 	}
+	logrus.Debugf("Received additional info: age=%d, gender=%s, nationality=%s", age, gender, nationality)
 
 	params := entities.User{
 		Name:        user.Name,
@@ -76,14 +82,15 @@ func (h *Handler) createUser(c *gin.Context) {
 		Nationality: nationality,
 	}
 
+	logrus.Infof("Attempt to create user with parameters:%+v ", params)
 	createdUser, err := h.services.UserService.CreateUser(params)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
-	logrus.Println("Created user: ", createdUser)
+	logrus.Debugf("Created user: %+v", createdUser)
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
+	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
 }
 
 func (h *Handler) getUserById(c *gin.Context) {
@@ -94,11 +101,13 @@ func (h *Handler) getUserById(c *gin.Context) {
 		return
 	}
 
+	logrus.Infof("Attempt to get user by ID=%d", userId32)
 	user, err := h.services.UserService.GetUserById(userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "User doesnt exist", err)
 		return
 	}
+	logrus.Debugf("Got user:%v by Id=%d", user, userId32)
 
 	c.JSON(http.StatusOK, user)
 }
@@ -130,7 +139,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 	}
 
 	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
-		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic mustn contain digits", err)
+		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", err)
 		return
 	}
 
@@ -144,11 +153,13 @@ func (h *Handler) updateUser(c *gin.Context) {
 		Id:          userId32,
 	}
 
+	logrus.Infof("Attempt to update user ID=%d with params: %+v", userId32, params)
 	err = h.services.UserService.UpdateUser(params)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
+	logrus.Debug("updated user: ", userIdStr)
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
@@ -172,11 +183,14 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		return
 	}
 
+	logrus.Infof("Attempt to delete user ID=%d", userId32)
 	err = h.services.UserService.DeleteUser(userId32)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Cant find user", err)
 		return
 	}
+	logrus.Debug("Deleted user: ", userIdStr)
+
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
 }
 
