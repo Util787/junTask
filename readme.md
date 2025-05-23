@@ -5,7 +5,9 @@ Receiving all users should be with filters and pagination.
 
 When creating a user 3 api requests from server must collect info about age, gender and nationality. Used apis:
 https://api.agify.io/
+
 https://api.genderize.io/
+
 https://api.nationalize.io/
 
 Updating parameters might be provided partically without changing the record entierly, but only parts that were provided.
