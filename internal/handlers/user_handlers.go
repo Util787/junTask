@@ -96,7 +96,7 @@ func (h *Handler) getUserById(c *gin.Context) {
 
 	user, err := h.services.UserService.GetUserById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Cant find user", err)
+		newErrorResponse(c, http.StatusBadRequest, "User doesnt exist", err)
 		return
 	}
 

@@ -18,15 +18,47 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 }
 
 func (u *UserRepository) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
+	query := `SELECT * FROM users WHERE 1=1`
+	params := map[string]interface{}{}
+
+	if name != "" {
+		query += " AND name ILIKE :name"
+		params["name"] = "%" + name + "%"
+	}
+	if surname != "" {
+		query += " AND surname ILIKE :surname"
+		params["surname"] = "%" + surname + "%"
+	}
+	if patronymic != "" {
+		query += " AND patronymic ILIKE :patronymic"
+		params["patronymic"] = "%" + patronymic + "%"
+	}
+	if gender != "" {
+		query += " AND gender = :gender"
+		params["gender"] = gender
+	}
+
+	if limit > 0 {
+		query += " LIMIT :limit"
+		params["limit"] = limit
+	}
+	if offset > 0 {
+		query += " OFFSET :offset"
+		params["offset"] = offset
+	}
+
 	var users []entities.User
-	query := `SELECT * FROM users WHERE 
-		(name = '' OR name = $1) AND 
-		(surname = '' OR surname = $2) AND 
-		(patronymic = '' OR patronymic = $3) AND 
-		(gender = '' OR gender = $4) 
-		LIMIT $5 OFFSET $6`
-	err := u.db.Select(&users, query, name, surname, patronymic, gender, limit, offset)
-	return users, err
+	namedStmt, err := u.db.PrepareNamed(query)
+	if err != nil {
+		return nil, err
+	}
+
+	err = namedStmt.Select(&users, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (u *UserRepository) CreateUser(params entities.User) (entities.User, error) {
