@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -146,7 +145,6 @@ func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) 
 	}
 
 	err = tx.Commit()
-	fmt.Println("-------------------------------", err)
 	return err
 }
 
