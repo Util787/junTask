@@ -144,8 +144,7 @@ func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) 
 		return err
 	}
 
-	err = tx.Commit()
-	return err
+	return tx.Commit()
 }
 
 func (u *UserRepository) DeleteUser(id int32) error {
