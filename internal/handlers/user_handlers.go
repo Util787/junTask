@@ -109,6 +109,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
+	//validation
 	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
 		return
@@ -248,8 +249,21 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
-		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
+	//validation
+	if user.Name != nil && haveDigits(*user.Name) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Name must not contain digits", errors.New("name contain digits"))
+		return
+	}
+	if user.Surname != nil && haveDigits(*user.Surname) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Surname must not contain digits", errors.New("surname contain digits"))
+		return
+	}
+	if user.Patronymic != nil && haveDigits(*user.Patronymic) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Patronymic must not contain digits", errors.New("patronimyc contain digits"))
+		return
+	}
+	if user.Gender != nil && *user.Gender != "female" && *user.Gender != "male" {
+		newErrorResponse(c, log, http.StatusBadRequest, "Gender must be 'male' or 'female'", errors.New("unknown gender"))
 		return
 	}
 

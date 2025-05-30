@@ -123,27 +123,27 @@ func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) 
 		"updated_at": time.Now(),
 	}
 
-	if params.Name != "" {
+	if params.Name != nil {
 		fields = append(fields, "name = :name")
 		args["name"] = params.Name
 	}
-	if params.Surname != "" {
+	if params.Surname != nil {
 		fields = append(fields, "surname = :surname")
 		args["surname"] = params.Surname
 	}
-	if params.Patronymic != "" {
+	if params.Patronymic != nil {
 		fields = append(fields, "patronymic = :patronymic")
 		args["patronymic"] = params.Patronymic
 	}
-	if params.Age != 0 {
+	if params.Age != nil {
 		fields = append(fields, "age = :age")
 		args["age"] = params.Age
 	}
-	if params.Gender != "" {
+	if params.Gender != nil {
 		fields = append(fields, "gender = :gender")
 		args["gender"] = params.Gender
 	}
-	if params.Nationality != "" {
+	if params.Nationality != nil {
 		fields = append(fields, "nationality = :nationality")
 		args["nationality"] = params.Nationality
 	}
