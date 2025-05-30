@@ -3,9 +3,9 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/Util787/junTask/entities"
 	"github.com/jmoiron/sqlx"
 )
@@ -24,64 +24,56 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 }
 
 func (u *UserRepository) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
-	query := `SELECT * FROM users WHERE 1=1`
-	params := map[string]interface{}{}
+	builder := sq.Select("*").
+		From("users").
+		Where("1=1").
+		PlaceholderFormat(sq.Dollar)
 
 	if name != "" {
-		query += " AND name ILIKE :name"
-		params["name"] = "%" + name + "%"
+		builder = builder.Where(sq.ILike{"name": "%" + name + "%"})
 	}
 	if surname != "" {
-		query += " AND surname ILIKE :surname"
-		params["surname"] = "%" + surname + "%"
+		builder = builder.Where(sq.ILike{"surname": "%" + surname + "%"})
 	}
 	if patronymic != "" {
-		query += " AND patronymic ILIKE :patronymic"
-		params["patronymic"] = "%" + patronymic + "%"
+		builder = builder.Where(sq.ILike{"patronymic": "%" + patronymic + "%"})
 	}
 	if gender != "" {
-		query += " AND gender = :gender"
-		params["gender"] = gender
+		builder = builder.Where(sq.Eq{"gender": gender})
 	}
-
 	if limit > 0 {
-		query += " LIMIT :limit"
-		params["limit"] = limit
+		builder = builder.Limit(uint64(limit))
 	}
 	if offset > 0 {
-		query += " OFFSET :offset"
-		params["offset"] = offset
+		builder = builder.Offset(uint64(offset))
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
 	}
 
 	var users []entities.User
-	namedStmt, err := u.db.PrepareNamed(query)
-	if err != nil {
-		return nil, err
-	}
-
-	err = namedStmt.Select(&users, params)
-	if err != nil {
-		return nil, err
-	}
-
-	return users, nil
+	err = u.db.Select(&users, query, args...)
+	return users, err
 }
 
 func (u *UserRepository) CreateUser(params entities.User) (entities.User, error) {
-	query := `INSERT INTO users (name, surname, patronymic, age, gender, nationality, created_at, updated_at) 
-	          VALUES (:name, :surname, :patronymic, :age, :gender, :nationality, :created_at, :updated_at)
-	          RETURNING id`
-
 	params.Created_at = time.Now()
 	params.Updated_at = time.Now()
 
-	stmt, err := u.db.PrepareNamed(query)
+	builder := sq.Insert("users").
+		Columns("name", "surname", "patronymic", "age", "gender", "nationality", "created_at", "updated_at").
+		Values(params.Name, params.Surname, params.Patronymic, params.Age, params.Gender, params.Nationality, params.Created_at, params.Updated_at).
+		Suffix("RETURNING id").
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builder.ToSql()
 	if err != nil {
 		return entities.User{}, err
 	}
-	defer stmt.Close()
 
-	err = stmt.Get(&params.Id, params)
+	err = u.db.Get(&params.Id, query, args...)
 	if err != nil {
 		return entities.User{}, err
 	}
@@ -101,8 +93,7 @@ func (u *UserRepository) ExistByFullName(params entities.FullName) (bool, error)
 
 func (u *UserRepository) ExistById(id int32) (bool, error) {
 	var exists bool
-	query := `SELECT EXISTS (
-		SELECT 1 FROM users WHERE id = $1)`
+	query := `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`
 
 	err := u.db.Get(&exists, query, id)
 	return exists, err
@@ -117,42 +108,45 @@ func (u *UserRepository) GetUserById(id int32) (entities.User, error) {
 }
 
 func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) error {
-	fields := []string{}
-	args := map[string]interface{}{
-		"id":         id,
-		"updated_at": time.Now(),
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
 	}
+	defer tx.Rollback()
+
+	builder := sq.Update("users").Where(sq.Eq{"id": id}).Set("updated_at", time.Now()).PlaceholderFormat(sq.Dollar)
 
 	if params.Name != nil {
-		fields = append(fields, "name = :name")
-		args["name"] = params.Name
+		builder = builder.Set("name", *params.Name)
 	}
 	if params.Surname != nil {
-		fields = append(fields, "surname = :surname")
-		args["surname"] = params.Surname
+		builder = builder.Set("surname", *params.Surname)
 	}
 	if params.Patronymic != nil {
-		fields = append(fields, "patronymic = :patronymic")
-		args["patronymic"] = params.Patronymic
+		builder = builder.Set("patronymic", *params.Patronymic)
 	}
 	if params.Age != nil {
-		fields = append(fields, "age = :age")
-		args["age"] = params.Age
+		builder = builder.Set("age", *params.Age)
 	}
 	if params.Gender != nil {
-		fields = append(fields, "gender = :gender")
-		args["gender"] = params.Gender
+		builder = builder.Set("gender", *params.Gender)
 	}
 	if params.Nationality != nil {
-		fields = append(fields, "nationality = :nationality")
-		args["nationality"] = params.Nationality
+		builder = builder.Set("nationality", *params.Nationality)
 	}
 
-	fields = append(fields, "updated_at = :updated_at")
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
 
-	query := fmt.Sprintf("UPDATE users SET %s WHERE id = :id", strings.Join(fields, ", "))
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		return err
+	}
 
-	_, err := u.db.NamedExec(query, args)
+	err = tx.Commit()
+	fmt.Println("-------------------------------", err)
 	return err
 }
 

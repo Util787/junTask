@@ -5,6 +5,7 @@ import (
 	"github.com/Util787/junTask/internal/repository"
 )
 
+// TODO: implement validation logic from handlers here
 type UserService struct {
 	userRepo repository.User
 }

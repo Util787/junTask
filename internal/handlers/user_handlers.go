@@ -105,7 +105,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	var user entities.FullName
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler: ", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler ", err)
 		return
 	}
 
@@ -115,11 +115,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	exists, err := h.services.UserService.ExistByFullName(entities.FullName{
-		Name:       user.Name,
-		Surname:    user.Surname,
-		Patronymic: user.Patronymic,
-	})
+	exists, err := h.services.UserService.ExistByFullName(user)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
@@ -267,17 +263,8 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	params := entities.UpdateUserParams{
-		Name:        user.Name,
-		Surname:     user.Surname,
-		Patronymic:  user.Patronymic,
-		Age:         user.Age,
-		Gender:      user.Gender,
-		Nationality: user.Nationality,
-	}
-
-	log.Info("Updating user with parameters", slog.Any("update_params", params))
-	err = h.services.UserService.UpdateUser(userId32, params)
+	log.Info("Updating user with parameters", slog.Any("update_params", user))
+	err = h.services.UserService.UpdateUser(userId32, user)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to update user", err)
 		return
