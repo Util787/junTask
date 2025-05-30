@@ -77,7 +77,7 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
 	log.Info("Got users successfully", slog.Int("count", len(allUsers)))
 
 	c.JSON(http.StatusOK, allUsers)
@@ -158,7 +158,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
 	log.Info("Created user successfully", slog.Any("created_user", createdUser))
 
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
@@ -196,7 +196,7 @@ func (h *Handler) getUserById(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
 	log.Info("Got user successfully", slog.Any("user", user))
 
 	c.JSON(http.StatusOK, user)
@@ -282,7 +282,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
-	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
 	log.Info("Updated user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
@@ -333,7 +333,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Cannot find user", err)
 		return
 	}
-	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
 	log.Info("Deleted user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
