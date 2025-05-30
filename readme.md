@@ -20,11 +20,12 @@ Updating parameters might be provided partically without changing the record ent
 git clone https://github.com/Util787/junTask
 ```
 
-2.Configure .env variables
+2.Configure .env variables (ENV must be 'prod' or 'dev' or 'local')
 
 Example:
 
 ```
+ENV=local
 SERVERPORT=8000
 DBHOST=localhost
 DBPORT=5436

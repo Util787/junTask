@@ -25,7 +25,6 @@ func (h *Handler) InitRoutes(env string) *gin.Engine {
 	}
 	router := gin.New()
 
-	// delete this after setting logs
 	if env != "prod" {
 		router.Use(gin.Logger())
 	}
