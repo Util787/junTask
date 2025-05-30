@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log/slog"
+
 	_ "github.com/Util787/junTask/docs"
 	service "github.com/Util787/junTask/internal/services"
 	"github.com/gin-gonic/gin"
@@ -9,6 +11,7 @@ import (
 )
 
 type Handler struct {
+	log      *slog.Logger
 	services *service.Service
 }
 
@@ -16,10 +19,17 @@ func NewHandlers(services *service.Service) *Handler {
 	return &Handler{services: services}
 }
 
-func (h *Handler) InitRoutes() *gin.Engine {
+func (h *Handler) InitRoutes(env string) *gin.Engine {
+	if env == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.New()
 
-	router.Use(gin.Logger())
+	// delete this after setting logs
+	if env != "prod" {
+		router.Use(gin.Logger())
+	}
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api")

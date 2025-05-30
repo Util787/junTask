@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,53 +12,93 @@ import (
 	"github.com/Util787/junTask/config"
 	"github.com/Util787/junTask/entities"
 	"github.com/Util787/junTask/internal/handlers"
+	"github.com/Util787/junTask/internal/logger/handlers/slogpretty"
+	"github.com/Util787/junTask/internal/logger/sl"
 	"github.com/Util787/junTask/internal/repository"
 	service "github.com/Util787/junTask/internal/services"
-	"github.com/sirupsen/logrus"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 // @title           Jun task api
 // @version         1.0
-// @description     Junior Golang Developer test task for Effective Mobile
+// @description     Junior Golang Developer test task
 
 // @host      localhost:8000
 // @BasePath  /api
 
 func main() {
-	servConfig, err := config.InitServerConfig()
-	if err != nil {
-		logrus.Fatal("Failed to initialize server config. Make sure all required .env variables are set.")
-	}
+	servConfig := config.InitServerConfig()
+
+	log := setupLogger(servConfig.Env)
 
 	dbConfig := config.InitDbConfig()
-
 	postgresDB, err := repository.NewPostgresDB(*dbConfig)
 	if err != nil {
-		logrus.Fatal("Failed to connect to db: ", err)
+		log.Error("Failed to connect to db", sl.Err(err))
+		return
 	}
+	log.Info("Connected to db successfully")
+
 	repos := repository.NewRepository(postgresDB)
 	services := service.NewService(repos)
 	handlers := handlers.NewHandlers(services)
 
 	srv := entities.Server{}
 	go func() {
-		err := srv.Run(servConfig.Port, handlers.InitRoutes())
+		err := srv.Run(servConfig.Port, handlers.InitRoutes(servConfig.Env))
 		if err != nil {
-			logrus.Fatal("Failed to run the server: ", err)
+			log.Error("Server was interrupted", sl.Err(err))
 		}
 	}()
 
+	//graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-	logrus.Print("Server shutting down")
-
+	log.Info("Shutting down the server")
 	if err := srv.Shutdown(context.Background()); err != nil {
-		logrus.Println("Failed to shut down the server: ", err)
+		log.Error("Failed to shut down the server", sl.Err(err))
 	}
 
 	if err := postgresDB.Close(); err != nil {
-		logrus.Println("error occured on db connection close: ", err)
+		log.Error("Error occured during db connection closing", sl.Err(err))
 	}
+	log.Info("Gracefully stopped")
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = setupPrettySlog()
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
+}
+
+func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
 }

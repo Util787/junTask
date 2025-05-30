@@ -1,12 +1,18 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/Util787/junTask/entities"
 	"github.com/jmoiron/sqlx"
+)
+
+var (
+	ErrUserExists   = errors.New("user already exists")
+	ErrUserNotFound = errors.New("user not found")
 )
 
 type UserRepository struct {

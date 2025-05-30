@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -94,7 +93,6 @@ func requestUserAge(ctx context.Context, name string) (agifyResponse, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println("Unreachable url ", agifyURL)
 		return agifyResponse{}, err
 	}
 	defer resp.Body.Close()
@@ -102,7 +100,6 @@ func requestUserAge(ctx context.Context, name string) (agifyResponse, error) {
 	var parsedResp agifyResponse
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	if err != nil {
-		log.Println("Couldnt parse from ", agifyURL)
 		return agifyResponse{}, err
 	}
 	return parsedResp, nil
@@ -116,7 +113,6 @@ func requestUserGender(ctx context.Context, name string) (genderizeResponse, err
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println("Unreachable url ", genderizeURL)
 		return genderizeResponse{}, err
 	}
 	defer resp.Body.Close()
@@ -124,7 +120,6 @@ func requestUserGender(ctx context.Context, name string) (genderizeResponse, err
 	var parsedResp genderizeResponse
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	if err != nil {
-		log.Println("Couldnt parse from ", genderizeURL)
 		return genderizeResponse{}, err
 	}
 	return parsedResp, nil
@@ -138,7 +133,6 @@ func requestUserNationality(ctx context.Context, name string) (nationalizeRespon
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println("Unreachable url ", nationalizeURL)
 		return nationalizeResponse{}, err
 	}
 	defer resp.Body.Close()
@@ -146,7 +140,6 @@ func requestUserNationality(ctx context.Context, name string) (nationalizeRespon
 	var parsedResp nationalizeResponse
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	if err != nil {
-		log.Println("Couldnt parse from ", nationalizeURL)
 		return nationalizeResponse{}, err
 	}
 	return parsedResp, nil

@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 	"unicode"
 
 	"github.com/Util787/junTask/entities"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // getAllUsers godoc
@@ -34,6 +36,13 @@ import (
 // @Failure      500  {object}  errorResponse
 // @Router       /users [get]
 func (h *Handler) getAllUsers(c *gin.Context) {
+	const op = "getAllUsers"
+	log := h.log.With(
+		slog.String("op", op),
+	)
+	start := time.Now()
+	log.Debug("Start", slog.Time("start_time", start))
+
 	name := c.DefaultQuery("name", "")
 	surname := c.DefaultQuery("surname", "")
 	patronymic := c.DefaultQuery("patronymic", "")
@@ -43,21 +52,33 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	parsedLimit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		parsedLimit = 0
+		log.Debug("Invalid limit value, set to 0", slog.String("limit", limitStr))
 	}
 
 	offsetStr := c.DefaultQuery("offset", "0")
 	parsedOffset, err := strconv.Atoi(offsetStr)
 	if err != nil {
 		parsedOffset = 0
+		log.Debug("Invalid offset value, set to 0", slog.String("offset", offsetStr))
 	}
 
-	logrus.Infof("Requested to get all users with queries: limit:%d offset:%d name:%s surname:%s patronymic:%s gender:%s", parsedLimit, parsedOffset, name, surname, patronymic, gender)
+	log.Info("Getting all users with parameters",
+		slog.Int("limit", parsedLimit),
+		slog.Int("offset", parsedOffset),
+		slog.String("name", name),
+		slog.String("surname", surname),
+		slog.String("patronymic", patronymic),
+		slog.String("gender", gender),
+	)
+
 	allUsers, err := h.services.UserService.GetAllUsers(int(parsedLimit), int(parsedOffset), name, surname, patronymic, gender)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to get users", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to get users", err)
 		return
 	}
-	logrus.Debugf("Got %d users ", len(allUsers))
+
+	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Info("Got users successfully", slog.Int("count", len(allUsers)))
 
 	c.JSON(http.StatusOK, allUsers)
 }
@@ -74,15 +95,22 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 // @Failure      500  {object}  errorResponse
 // @Router       /users [post]
 func (h *Handler) createUser(c *gin.Context) {
+	const op = "createUser"
+	log := h.log.With(
+		slog.String("op", op),
+	)
+	start := time.Now()
+	log.Debug("Start", slog.Time("start_time", start))
+
 	var user entities.FullName
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in createUser handler: ", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler: ", err)
 		return
 	}
 
 	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
-		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
 		return
 	}
 
@@ -92,20 +120,26 @@ func (h *Handler) createUser(c *gin.Context) {
 		Patronymic: user.Patronymic,
 	})
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
 	}
 	if exists {
-		newErrorResponse(c, http.StatusBadRequest, "User already exists", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "User already exists", errors.New("user already exists"))
 		return
 	}
 
+	log.Info("Requesting additional info")
 	age, gender, nationality, err := requestUserAdditionalInfo(user.Name)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "requests time out or unreachable", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Requests timed out or service is unreachable", err)
 		return
 	}
-	logrus.Debugf("Received additional info: age=%d, gender=%s, nationality=%s", age, gender, nationality)
+
+	log.Debug("Received additional info",
+		slog.Int("age", age),
+		slog.String("gender", gender),
+		slog.String("nationality", nationality),
+	)
 
 	params := entities.User{
 		Name:        user.Name,
@@ -116,13 +150,15 @@ func (h *Handler) createUser(c *gin.Context) {
 		Nationality: nationality,
 	}
 
-	logrus.Infof("Attempt to create user with parameters:%+v ", params)
+	log.Info("Creating user with parameters", slog.Any("user", params))
 	createdUser, err := h.services.UserService.CreateUser(params)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to create user", err)
 		return
 	}
-	logrus.Debugf("Created user: %+v", createdUser)
+
+	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Info("Created user successfully", slog.Any("created_user", createdUser))
 
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
 }
@@ -138,20 +174,29 @@ func (h *Handler) createUser(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [get]
 func (h *Handler) getUserById(c *gin.Context) {
+	const op = "getUserById"
+	log := h.log.With(
+		slog.String("op", op),
+	)
+	start := time.Now()
+	log.Debug("Start", slog.Time("start_time", start))
+
 	userIdStr := c.Param("user_id")
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
-	logrus.Infof("Attempt to get user by ID=%d", userId32)
+	log.Info("Getting user by ID", slog.Int("user_id", int(userId32)))
 	user, err := h.services.UserService.GetUserById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "User doesnt exist", err)
+		newErrorResponse(c, log, http.StatusNotFound, "User not found", err)
 		return
 	}
-	logrus.Debugf("Got user:%v by Id=%d", user, userId32)
+
+	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Info("Got user successfully", slog.Any("user", user))
 
 	c.JSON(http.StatusOK, user)
 }
@@ -169,33 +214,42 @@ func (h *Handler) getUserById(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [patch]
 func (h *Handler) updateUser(c *gin.Context) {
+	const op = "updateUser"
+	log := h.log.With(
+		slog.String("op", op),
+	)
+	start := time.Now()
+	log.Debug("Start", slog.Time("start_time", start))
+
 	userIdStr := c.Param("user_id")
 
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
+	log.Info("Checking if user exists by id", slog.Int("user_id", int(userId32)))
 	exists, err := h.services.UserService.ExistById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Failed to check if the user exists", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to check if the user exists", err)
 		return
 	}
 	if !exists {
-		newErrorResponse(c, http.StatusBadRequest, "Cant update user that doesnt exist", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Cannot update user that does not exist", errors.New("user does not exist"))
 		return
 	}
+	log.Info("User exists in db", slog.Int("user_id", int(userId32)))
 
 	var user entities.UpdateUserParams
 	err = c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Failed to parse json in updateUser handler", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in updateUser handler", err)
 		return
 	}
 
 	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
-		newErrorResponse(c, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
 		return
 	}
 
@@ -209,13 +263,14 @@ func (h *Handler) updateUser(c *gin.Context) {
 		Id:          userId32,
 	}
 
-	logrus.Infof("Attempt to update user ID=%d with params: %+v", userId32, params)
+	log.Info("Updating user with parameters", slog.Any("update_params", params))
 	err = h.services.UserService.UpdateUser(params)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to update user", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
-	logrus.Debug("updated user: ", userIdStr)
+	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Info("Updated user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
@@ -232,31 +287,41 @@ func (h *Handler) updateUser(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [delete]
 func (h *Handler) deleteUser(c *gin.Context) {
+	const op = "deleteUser"
+	log := h.log.With(
+		slog.String("op", op),
+	)
+	start := time.Now()
+	log.Debug("Start", slog.Time("start_time", start))
+
 	userIdStr := c.Param("user_id")
 
 	userId32, err := parseInt32(userIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Id should be number", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Id should be number", err)
 		return
 	}
 
+	log.Info("Checking if user exists by id", slog.Int("user_id", int(userId32)))
 	exist, err := h.services.UserService.ExistById(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "Failed to check if the user exists", err)
+		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
 	}
 	if !exist {
-		newErrorResponse(c, http.StatusBadRequest, "Cant delete user that doesnt exist", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Cannot delete user that does not exist", errors.New("user does not exist"))
 		return
 	}
+	log.Info("User exists in db", slog.Int("user_id", int(userId32)))
 
-	logrus.Infof("Attempt to delete user ID=%d", userId32)
+	log.Info("Deleting user", slog.Int("user_id", int(userId32)))
 	err = h.services.UserService.DeleteUser(userId32)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Cant find user", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Cannot find user", err)
 		return
 	}
-	logrus.Debug("Deleted user: ", userIdStr)
+	log.Debug("Operation finished", slog.Duration("duration", time.Since(start)))
+	log.Info("Deleted user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
 }

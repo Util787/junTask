@@ -7,18 +7,25 @@ import (
 )
 
 type ServerConfig struct {
+	Env  string
 	Port string
 }
 
-func InitServerConfig() (*ServerConfig, error) {
+func InitServerConfig() *ServerConfig {
 	err := godotenv.Load()
 	if err != nil {
-		return nil, err
+		panic("Failed to initialize server config. Make sure all required .env variables are set")
+	}
+
+	env := os.Getenv("ENV")
+	if env != "local" && env != "prod" && env != "dev" {
+		panic("Invalid environment value: must be 'prod', 'dev', or 'local'")
 	}
 
 	return &ServerConfig{
+		Env:  env,
 		Port: os.Getenv("SERVERPORT"),
-	}, nil
+	}
 }
 
 type DBConfig struct {
