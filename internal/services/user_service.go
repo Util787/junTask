@@ -37,8 +37,8 @@ func (u *UserService) GetUserById(id int32) (entities.User, error) {
 	return u.userRepo.GetUserById(id)
 }
 
-func (u *UserService) UpdateUser(params entities.UpdateUserParams) error {
-	return u.userRepo.UpdateUser(params)
+func (u *UserService) UpdateUser(id int32, params entities.UpdateUserParams) error {
+	return u.userRepo.UpdateUser(id, params)
 }
 
 func (u *UserService) DeleteUser(id int32) error {

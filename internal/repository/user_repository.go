@@ -116,10 +116,10 @@ func (u *UserRepository) GetUserById(id int32) (entities.User, error) {
 	return user, err
 }
 
-func (u *UserRepository) UpdateUser(params entities.UpdateUserParams) error {
+func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) error {
 	fields := []string{}
 	args := map[string]interface{}{
-		"id":         params.Id,
+		"id":         id,
 		"updated_at": time.Now(),
 	}
 

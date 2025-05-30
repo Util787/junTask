@@ -23,12 +23,10 @@ type FullName struct {
 }
 
 type UpdateUserParams struct {
-	Id          int32     `json:"id"`
-	Updated_at  time.Time `json:"updated_at"`
-	Name        string    `json:"name"`
-	Surname     string    `json:"surname"`
-	Patronymic  string    `json:"patronymic"`
-	Age         int       `json:"age"`
-	Gender      string    `json:"gender"`
-	Nationality string    `json:"nationality"`
+	Name        string `json:"name"`
+	Surname     string `json:"surname"`
+	Patronymic  string `json:"patronymic"`
+	Age         int    `json:"age"`
+	Gender      string `json:"gender"`
+	Nationality string `json:"nationality"`
 }

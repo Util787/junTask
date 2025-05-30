@@ -260,11 +260,10 @@ func (h *Handler) updateUser(c *gin.Context) {
 		Age:         user.Age,
 		Gender:      user.Gender,
 		Nationality: user.Nationality,
-		Id:          userId32,
 	}
 
 	log.Info("Updating user with parameters", slog.Any("update_params", params))
-	err = h.services.UserService.UpdateUser(params)
+	err = h.services.UserService.UpdateUser(userId32, params)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to update user", err)
 		return

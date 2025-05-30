@@ -11,7 +11,7 @@ type User interface {
 	ExistByFullName(params entities.FullName) (bool, error)
 	ExistById(id int32) (bool, error)
 	GetUserById(id int32) (entities.User, error)
-	UpdateUser(params entities.UpdateUserParams) error
+	UpdateUser(id int32,params entities.UpdateUserParams) error
 	DeleteUser(id int32) error
 }
 
