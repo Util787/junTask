@@ -14,3 +14,7 @@ CREATE TABLE users(
 -- migrate -path sql/schema -database "DB_URL?sslmode=disable" up
 -- example: 
 -- migrate -path sql/schema -database "postgres://postgres:1111@localhost:5436/postgres?sslmode=disable" up
+
+-- to create your own migrations
+-- example:
+-- migrate create -ext sql -dir ./sql/schema -seq add_gender_index   

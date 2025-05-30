@@ -15,8 +15,8 @@ type Handler struct {
 	services *service.Service
 }
 
-func NewHandlers(services *service.Service) *Handler {
-	return &Handler{services: services}
+func NewHandlers(services *service.Service, log *slog.Logger) *Handler {
+	return &Handler{services: services, log: log}
 }
 
 func (h *Handler) InitRoutes(env string) *gin.Engine {

@@ -46,7 +46,7 @@ func main() {
 
 	repos := repository.NewRepository(postgresDB)
 	services := service.NewService(repos)
-	handlers := handlers.NewHandlers(services)
+	handlers := handlers.NewHandlers(services, log)
 
 	srv := entities.Server{}
 	go func() {
