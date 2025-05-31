@@ -30,7 +30,7 @@ func TestHandler_createUser(t *testing.T) {
 			testname:  "ok",
 			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
 			mockCreateBehavior: func(s *mocks.MockUserService) {
-				//Можно было бы сделать чтобы age gender nationality сверялись с теми что в ответах апишек но будем честны при каждом тесте делать запросы это расточительство
+				//Можно было бы сделать чтобы age gender nationality сверялись с теми что в ответах апишек но будем честны при каждом тесте делать запросы это расточительство лучше тогда обернуть в интерфейс
 				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{Id: 1, Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}, nil)
 			},
 			mockExistBehavior: func(s *mocks.MockUserService) {
