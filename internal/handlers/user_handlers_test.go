@@ -87,6 +87,19 @@ func TestHandler_createUser(t *testing.T) {
 			expectedStatusCode:      400,
 			expectedResponseBody:    `{"message":"User already exists"}`,
 		},
+		{
+			testname:  "Info request error",
+			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			mockExistBehavior: func(s *mocks.MockUserService) {
+				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
+			},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {
+				s.On("RequestAdditionalInfo", "testname").Return(0, "", "", errors.New("api call unreachable"))
+			},
+			mockCreateBehavior:   func(s *mocks.MockUserService) {},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"Requests timed out or service is unreachable"}`,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.testname, func(t *testing.T) {
