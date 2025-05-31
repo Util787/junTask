@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -27,15 +28,18 @@ const (
 )
 
 type agifyResponse struct {
-	Age int `json:"age"`
+	Age   int    `json:"age"`
+	Error string `json:"error"`
 }
 
 type genderizeResponse struct {
 	Gender string `json:"gender"`
+	Error  string `json:"error"`
 }
 
 type nationalizeResponse struct {
 	Country []countryInfo `json:"country"`
+	Error   string        `json:"error"`
 }
 
 type countryInfo struct {
@@ -112,6 +116,9 @@ func requestUserAge(ctx context.Context, name string) (agifyResponse, error) {
 	if err != nil {
 		return agifyResponse{}, err
 	}
+	if parsedResp.Error != "" {
+		return agifyResponse{}, errors.New(parsedResp.Error)
+	}
 	return parsedResp, nil
 }
 
@@ -132,6 +139,9 @@ func requestUserGender(ctx context.Context, name string) (genderizeResponse, err
 	if err != nil {
 		return genderizeResponse{}, err
 	}
+	if parsedResp.Error != "" {
+		return genderizeResponse{}, errors.New(parsedResp.Error)
+	}
 	return parsedResp, nil
 }
 
@@ -151,6 +161,9 @@ func requestUserNationality(ctx context.Context, name string) (nationalizeRespon
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	if err != nil {
 		return nationalizeResponse{}, err
+	}
+	if parsedResp.Error != "" {
+		return nationalizeResponse{}, errors.New(parsedResp.Error)
 	}
 	return parsedResp, nil
 }
