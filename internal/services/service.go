@@ -14,13 +14,18 @@ type UserService interface {
 	UpdateUser(id int32, params entities.UpdateUserParams) error
 	DeleteUser(id int32) error
 }
+type InfoRequestService interface {
+	RequestAdditionalInfo(name string) (age int, gender string, nationality string, err error)
+}
 
 type Service struct {
-	UserService UserService
+	UserService        UserService
+	InfoRequestService InfoRequestService
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		UserService: NewUserService(repos.UserRepository),
+		UserService:        NewUserService(repos.UserRepository),
+		InfoRequestService: NewInfoRequestService(),
 	}
 }

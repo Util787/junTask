@@ -1,4 +1,4 @@
-package handlers
+package service
 
 import (
 	"context"
@@ -9,6 +9,16 @@ import (
 
 	"golang.org/x/sync/errgroup"
 )
+
+func NewInfoRequestService() InfoRequestService {
+	return &infoRequestService{}
+}
+
+type infoRequestService struct{}
+
+func (r *infoRequestService) RequestAdditionalInfo(name string) (int, string, string, error) {
+	return requestUserAdditionalInfo(name)
+}
 
 const (
 	agifyURL       = "https://api.agify.io/"

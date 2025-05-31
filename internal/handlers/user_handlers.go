@@ -106,7 +106,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	var user entities.FullName
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler ", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler", err)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	}
 
 	log.Info("Requesting additional info")
-	age, gender, nationality, err := requestUserAdditionalInfo(user.Name)
+	age, gender, nationality, err := h.services.InfoRequestService.RequestAdditionalInfo(user.Name)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Requests timed out or service is unreachable", err)
 		return

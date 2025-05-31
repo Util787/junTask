@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -14,59 +15,109 @@ import (
 )
 
 func TestHandler_createUser(t *testing.T) {
-	mockUserService := mocks.NewMockUserService(t)
-	router := setupRouterWithMock(mockUserService)
 
 	tests := []struct {
-		testname             string
-		inputBody            string
-		mockCreateBehavior   func(s *mocks.MockUserService)
-		mockExistBehavior    func(s *mocks.MockUserService)
-		expectedStatusCode   int
-		expectedResponseBody string
+		testname                string
+		inputBody               string
+		mockExistBehavior       func(s *mocks.MockUserService)
+		mockInfoRequestBehavior func(s *mocks.MockInfoRequestService)
+		mockCreateBehavior      func(s *mocks.MockUserService)
+		expectedStatusCode      int
+		expectedResponseBody    string
 	}{
 		// TODO: Add more test cases.
 		{
-			testname:  "ok",
+			testname:  "Ok",
 			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
-			mockCreateBehavior: func(s *mocks.MockUserService) {
-				//Можно было бы сделать чтобы age gender nationality сверялись с теми что в ответах апишек но будем честны при каждом тесте делать запросы это расточительство лучше тогда обернуть в интерфейс
-				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{Id: 1, Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}, nil)
-			},
 			mockExistBehavior: func(s *mocks.MockUserService) {
 				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
 			},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {
+				s.On("RequestAdditionalInfo", "testname").Return(41, "female", "BY", nil)
+			},
+			mockCreateBehavior: func(s *mocks.MockUserService) {
+				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{Id: 3, Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}, nil)
+			},
 			expectedStatusCode:   201,
-			expectedResponseBody: `{"message":"user created successfully with id: 1"}`,
+			expectedResponseBody: `{"message":"user created successfully with id: 3"}`,
+		},
+		{
+			testname:                "Empty JSON",
+			inputBody:               `{}`,
+			mockExistBehavior:       func(s *mocks.MockUserService) {},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {},
+			mockCreateBehavior:      func(s *mocks.MockUserService) {},
+			expectedStatusCode:      400,
+			expectedResponseBody:    `{"message":"Failed to parse json in createUser handler"}`,
+		},
+		{
+			testname:  "Create service error",
+			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			mockExistBehavior: func(s *mocks.MockUserService) {
+				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
+			},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {
+				s.On("RequestAdditionalInfo", "testname").Return(41, "female", "BY", nil)
+			},
+			mockCreateBehavior: func(s *mocks.MockUserService) {
+				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{}, errors.New("Something went wrong"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"Failed to create user"}`,
+		},
+		{
+			testname:  "Exist service error",
+			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			mockExistBehavior: func(s *mocks.MockUserService) {
+				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, errors.New("Something went wrong"))
+			},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {},
+			mockCreateBehavior:      func(s *mocks.MockUserService) {},
+			expectedStatusCode:      500,
+			expectedResponseBody:    `{"message":"Failed to check if the user exists"}`,
+		},
+		{
+			testname:  "User already exists",
+			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			mockExistBehavior: func(s *mocks.MockUserService) {
+				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(true, nil)
+			},
+			mockInfoRequestBehavior: func(s *mocks.MockInfoRequestService) {},
+			mockCreateBehavior:      func(s *mocks.MockUserService) {},
+			expectedStatusCode:      400,
+			expectedResponseBody:    `{"message":"User already exists"}`,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.testname, func(t *testing.T) {
+			mockUserService := mocks.NewMockUserService(t)
+			mockInfoRequestService := mocks.NewMockInfoRequestService(t)
+			router := setupRouterWithMock(mockUserService, mockInfoRequestService)
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(test.inputBody))
 			req.Header.Set("Content-Type", "application/json")
 
 			test.mockExistBehavior(mockUserService)
+			test.mockInfoRequestBehavior(mockInfoRequestService)
 			test.mockCreateBehavior(mockUserService)
 
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, test.expectedStatusCode, w.Code)
-
 			assert.Contains(t, w.Body.String(), test.expectedResponseBody)
 
 		})
 	}
 }
 
-func setupRouterWithMock(mockUserService *mocks.MockUserService) *gin.Engine {
+func setupRouterWithMock(mockUserService *mocks.MockUserService, mockInfoRequestService *mocks.MockInfoRequestService) *gin.Engine {
 	logger := slogdiscard.NewDiscardLogger()
 
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
 
-	service := &service.Service{UserService: mockUserService}
+	service := &service.Service{UserService: mockUserService, InfoRequestService: mockInfoRequestService}
 	h := NewHandlers(service, logger)
 
 	router.GET("/users", h.getAllUsers)
