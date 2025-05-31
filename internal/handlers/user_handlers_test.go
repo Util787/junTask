@@ -25,7 +25,7 @@ func TestHandler_createUser(t *testing.T) {
 		expectedStatusCode      int
 		expectedResponseBody    string
 	}{
-		// TODO: Add more test cases.
+		// TODO: Add more test cases. Add time delta
 		{
 			testname:  "Ok",
 			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
