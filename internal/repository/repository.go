@@ -5,7 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type User interface {
+type UserRepository interface {
 	GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error)
 	CreateUser(params entities.User) (entities.User, error)
 	ExistByFullName(params entities.FullName) (bool, error)
@@ -16,7 +16,7 @@ type User interface {
 }
 
 type Repository struct {
-	UserRepository User
+	UserRepository UserRepository
 }
 
 func NewRepository(db *sqlx.DB) *Repository {

@@ -14,15 +14,15 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
-type UserRepository struct {
+type userRepository struct {
 	db *sqlx.DB
 }
 
-func NewUserRepository(db *sqlx.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *sqlx.DB) UserRepository {
+	return &userRepository{db: db}
 }
 
-func (u *UserRepository) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
+func (u *userRepository) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
 	builder := sq.Select("*").
 		From("users").
 		Where("1=1").
@@ -57,7 +57,7 @@ func (u *UserRepository) GetAllUsers(limit, offset int, name, surname, patronymi
 	return users, err
 }
 
-func (u *UserRepository) CreateUser(params entities.User) (entities.User, error) {
+func (u *userRepository) CreateUser(params entities.User) (entities.User, error) {
 	params.Created_at = time.Now()
 	params.Updated_at = time.Now()
 
@@ -80,7 +80,7 @@ func (u *UserRepository) CreateUser(params entities.User) (entities.User, error)
 	return params, nil
 }
 
-func (u *UserRepository) ExistByFullName(params entities.FullName) (bool, error) {
+func (u *userRepository) ExistByFullName(params entities.FullName) (bool, error) {
 	var exists bool
 	query := `SELECT EXISTS (
 		SELECT 1 FROM users 
@@ -90,7 +90,7 @@ func (u *UserRepository) ExistByFullName(params entities.FullName) (bool, error)
 	return exists, err
 }
 
-func (u *UserRepository) ExistById(id int32) (bool, error) {
+func (u *userRepository) ExistById(id int32) (bool, error) {
 	var exists bool
 	query := `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`
 
@@ -98,7 +98,7 @@ func (u *UserRepository) ExistById(id int32) (bool, error) {
 	return exists, err
 }
 
-func (u *UserRepository) GetUserById(id int32) (entities.User, error) {
+func (u *userRepository) GetUserById(id int32) (entities.User, error) {
 	var user entities.User
 	query := `SELECT * FROM users WHERE id = $1`
 
@@ -106,7 +106,7 @@ func (u *UserRepository) GetUserById(id int32) (entities.User, error) {
 	return user, err
 }
 
-func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) error {
+func (u *userRepository) UpdateUser(id int32, params entities.UpdateUserParams) error {
 	tx, err := u.db.Beginx()
 	if err != nil {
 		return err
@@ -147,7 +147,7 @@ func (u *UserRepository) UpdateUser(id int32, params entities.UpdateUserParams) 
 	return tx.Commit()
 }
 
-func (u *UserRepository) DeleteUser(id int32) error {
+func (u *userRepository) DeleteUser(id int32) error {
 	query := `DELETE FROM users WHERE id = $1`
 	_, err := u.db.Exec(query, id)
 	return err

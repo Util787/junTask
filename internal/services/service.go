@@ -5,7 +5,7 @@ import (
 	"github.com/Util787/junTask/internal/repository"
 )
 
-type User interface {
+type UserService interface {
 	GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error)
 	CreateUser(params entities.User) (entities.User, error)
 	ExistByFullName(params entities.FullName) (bool, error)
@@ -16,7 +16,7 @@ type User interface {
 }
 
 type Service struct {
-	UserService User
+	UserService UserService
 }
 
 func NewService(repos *repository.Repository) *Service {

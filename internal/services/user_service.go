@@ -6,23 +6,23 @@ import (
 )
 
 // TODO: implement validation logic from handlers here
-type UserService struct {
-	userRepo repository.User
+type userService struct {
+	userRepo repository.UserRepository
 }
 
-func NewUserService(repo repository.User) *UserService {
-	return &UserService{userRepo: repo}
+func NewUserService(repo repository.UserRepository) UserService {
+	return &userService{userRepo: repo}
 }
 
-func (u *UserService) CreateUser(params entities.User) (entities.User, error) {
+func (u *userService) CreateUser(params entities.User) (entities.User, error) {
 	return u.userRepo.CreateUser(params)
 }
 
-func (u *UserService) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
+func (u *userService) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
 	return u.userRepo.GetAllUsers(limit, offset, name, surname, patronymic, gender)
 }
 
-func (u *UserService) ExistByFullName(params entities.FullName) (bool, error) {
+func (u *userService) ExistByFullName(params entities.FullName) (bool, error) {
 	// its wrong to check existance if patronymic is null because people might have same names and surnames
 	if params.Patronymic == "" {
 		return false, nil
@@ -30,18 +30,18 @@ func (u *UserService) ExistByFullName(params entities.FullName) (bool, error) {
 	return u.userRepo.ExistByFullName(params)
 }
 
-func (u *UserService) ExistById(id int32) (bool, error) {
+func (u *userService) ExistById(id int32) (bool, error) {
 	return u.userRepo.ExistById(id)
 }
 
-func (u *UserService) GetUserById(id int32) (entities.User, error) {
+func (u *userService) GetUserById(id int32) (entities.User, error) {
 	return u.userRepo.GetUserById(id)
 }
 
-func (u *UserService) UpdateUser(id int32, params entities.UpdateUserParams) error {
+func (u *userService) UpdateUser(id int32, params entities.UpdateUserParams) error {
 	return u.userRepo.UpdateUser(id, params)
 }
 
-func (u *UserService) DeleteUser(id int32) error {
+func (u *userService) DeleteUser(id int32) error {
 	return u.userRepo.DeleteUser(id)
 }
