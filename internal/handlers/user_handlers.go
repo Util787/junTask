@@ -36,6 +36,7 @@ import (
 // @Failure      500  {object}  errorResponse
 // @Router       /users [get]
 func (h *Handler) getAllUsers(c *gin.Context) {
+	//can add uuid to every operation individually to track it
 	const op = "getAllUsers"
 	log := h.log.With(
 		slog.String("op", op),
