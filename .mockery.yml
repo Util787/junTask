@@ -14,7 +14,7 @@ packages:
   github.com/Util787/junTask/internal/services:
     config:
       all: true
-      dir: ./mocks
+      dir: ./internal/services/mocks
       filename: "service.go"
 
   
