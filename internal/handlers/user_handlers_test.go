@@ -107,7 +107,7 @@ func TestHandler_createUser(t *testing.T) {
 			mockInfoRequestService := mocks.NewMockInfoRequestService(t)
 			router := setupRouterWithMock(mockUserService, mockInfoRequestService)
 
-			w := httptest.NewRecorder()
+			resp := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(test.inputBody))
 			req.Header.Set("Content-Type", "application/json")
 
@@ -115,10 +115,10 @@ func TestHandler_createUser(t *testing.T) {
 			test.mockInfoRequestBehavior(mockInfoRequestService)
 			test.mockCreateBehavior(mockUserService)
 
-			router.ServeHTTP(w, req)
+			router.ServeHTTP(resp, req)
 
-			assert.Equal(t, test.expectedStatusCode, w.Code)
-			assert.Contains(t, w.Body.String(), test.expectedResponseBody)
+			assert.Equal(t, test.expectedStatusCode, resp.Code)
+			assert.Contains(t, resp.Body.String(), test.expectedResponseBody)
 
 		})
 	}
