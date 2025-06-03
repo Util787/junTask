@@ -29,13 +29,13 @@ func (u *userRepository) GetAllUsers(limit, offset int, name, surname, patronymi
 		PlaceholderFormat(sq.Dollar)
 
 	if name != "" {
-		builder = builder.Where(sq.ILike{"name": "%" + name + "%"})
+		builder = builder.Where(sq.ILike{"name": name + "%"})
 	}
 	if surname != "" {
-		builder = builder.Where(sq.ILike{"surname": "%" + surname + "%"})
+		builder = builder.Where(sq.ILike{"surname": surname + "%"})
 	}
 	if patronymic != "" {
-		builder = builder.Where(sq.ILike{"patronymic": "%" + patronymic + "%"})
+		builder = builder.Where(sq.ILike{"patronymic": patronymic + "%"})
 	}
 	if gender != "" {
 		builder = builder.Where(sq.Eq{"gender": gender})
