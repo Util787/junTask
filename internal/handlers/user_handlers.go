@@ -41,6 +41,7 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	log := h.log.With(
 		slog.String("op", op),
 	)
+	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
 
@@ -109,6 +110,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	log := h.log.With(
 		slog.String("op", op),
 	)
+	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
 
@@ -189,6 +191,7 @@ func (h *Handler) getUserById(c *gin.Context) {
 	log := h.log.With(
 		slog.String("op", op),
 	)
+	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
 
@@ -233,6 +236,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 	log := h.log.With(
 		slog.String("op", op),
 	)
+	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
 
@@ -314,6 +318,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 	log := h.log.With(
 		slog.String("op", op),
 	)
+	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
 
