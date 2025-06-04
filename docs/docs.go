@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/users": {
             "get": {
-                "description": "Get users using flexible query filters and pagination. You can provide partial values for ` + "`" + `name` + "`" + `, ` + "`" + `surname` + "`" + `, or ` + "`" + `patronymic` + "`" + ` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.\nExample: ?limit=5\u0026offset=10\nResponse: 5 users with offset=10\nExample: ?name=al\nResponse: Alex, Alina, etc.\nExample2: ?name=al\u0026surname=sh\nResponse: Alexandr Shprot, Alina Sham, etc.",
+                "description": "Get users using flexible query filters and pagination. You can provide partial values for ` + "`" + `name` + "`" + `, ` + "`" + `surname` + "`" + `, or ` + "`" + `patronymic` + "`" + ` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.\n\nExample: ?page=5\u0026page_size=10\nResponse: 10 users with offset=40\n\nExample2: ?name=al\nResponse: Alex, Alina, etc.\n\nExample3: ?name=al\u0026surname=sh\nResponse: Alexandr Shprot, Alina Sham, etc.",
                 "consumes": [
                     "application/json"
                 ],
@@ -55,14 +55,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "default:0",
-                        "name": "limit",
+                        "description": "min:5",
+                        "name": "page_size",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "default:0",
-                        "name": "offset",
+                        "description": "min:1",
+                        "name": "page",
                         "in": "query"
                     }
                 ],
@@ -307,9 +307,6 @@ const docTemplate = `{
                 "gender": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
                 "name": {
                     "type": "string"
                 },
@@ -320,9 +317,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "surname": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 }
             }
@@ -381,7 +375,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Jun task api",
-	Description:      "Junior Golang Developer test task for Effective Mobile",
+	Description:      "Junior Golang Developer test task",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

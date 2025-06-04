@@ -22,39 +22,68 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (u *userRepository) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
-	builder := sq.Select("*").
-		From("users").
-		Where("1=1").
-		PlaceholderFormat(sq.Dollar)
+func (u *userRepository) GetAllUsers(pageSize, page int, name, surname, patronymic, gender string) ([]entities.User, int, error) {
+	totalCountBuilder := sq.Select("COUNT(*)").From("users").Where("1=1").PlaceholderFormat(sq.Dollar)
+	usersBuilder := sq.Select("*").From("users").Where("1=1").PlaceholderFormat(sq.Dollar)
 
 	if name != "" {
-		builder = builder.Where(sq.ILike{"name": name + "%"})
+		nameLike := sq.ILike{"name": name + "%"}
+		usersBuilder = usersBuilder.Where(nameLike)
+		totalCountBuilder = totalCountBuilder.Where(nameLike)
 	}
 	if surname != "" {
-		builder = builder.Where(sq.ILike{"surname": surname + "%"})
+		surnameLike := sq.ILike{"surname": surname + "%"}
+		usersBuilder = usersBuilder.Where(surnameLike)
+		totalCountBuilder = totalCountBuilder.Where(surnameLike)
 	}
 	if patronymic != "" {
-		builder = builder.Where(sq.ILike{"patronymic": patronymic + "%"})
+		patronymicLike := sq.ILike{"patronymic": patronymic + "%"}
+		usersBuilder = usersBuilder.Where(patronymicLike)
+		totalCountBuilder = totalCountBuilder.Where(patronymicLike)
 	}
 	if gender != "" {
-		builder = builder.Where(sq.Eq{"gender": gender})
-	}
-	if limit > 0 {
-		builder = builder.Limit(uint64(limit))
-	}
-	if offset > 0 {
-		builder = builder.Offset(uint64(offset))
+		genderEq := sq.Eq{"gender": gender}
+		usersBuilder = usersBuilder.Where(genderEq)
+		totalCountBuilder = totalCountBuilder.Where(genderEq)
 	}
 
-	query, args, err := builder.ToSql()
+	offset := (page - 1) * pageSize
+	usersBuilder = usersBuilder.Limit(uint64(pageSize)).Offset(uint64(offset))
+
+	usersQuery, usersArgs, err := usersBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+
+	totalCountQuery, totalCountArgs, err := totalCountBuilder.ToSql()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return nil, 0, err
+	}
+	defer tx.Rollback()
 
 	var users []entities.User
-	err = u.db.Select(&users, query, args...)
-	return users, err
+	err = tx.Select(&users, usersQuery, usersArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var totalCount int
+	err = tx.Get(&totalCount, totalCountQuery, totalCountArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalCount, nil
 }
 
 func (u *userRepository) CreateUser(params entities.User) (entities.User, error) {
@@ -107,12 +136,6 @@ func (u *userRepository) GetUserById(id int32) (entities.User, error) {
 }
 
 func (u *userRepository) UpdateUser(id int32, params entities.UpdateUserParams) error {
-	tx, err := u.db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
 	builder := sq.Update("users").Where(sq.Eq{"id": id}).Set("updated_at", time.Now()).PlaceholderFormat(sq.Dollar)
 
 	if params.Name != nil {
@@ -139,12 +162,12 @@ func (u *userRepository) UpdateUser(id int32, params entities.UpdateUserParams) 
 		return err
 	}
 
-	_, err = tx.Exec(query, args...)
+	_, err = u.db.Exec(query, args...)
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 func (u *userRepository) DeleteUser(id int32) error {

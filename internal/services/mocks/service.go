@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	"context"
+
 	"github.com/Util787/junTask/entities"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -268,31 +270,37 @@ func (_c *MockUserService_ExistById_Call) RunAndReturn(run func(id int32) (bool,
 }
 
 // GetAllUsers provides a mock function for the type MockUserService
-func (_mock *MockUserService) GetAllUsers(limit int, offset int, name string, surname string, patronymic string, gender string) ([]entities.User, error) {
-	ret := _mock.Called(limit, offset, name, surname, patronymic, gender)
+func (_mock *MockUserService) GetAllUsers(pageSize int, page int, name string, surname string, patronymic string, gender string) ([]entities.User, int, error) {
+	ret := _mock.Called(pageSize, page, name, surname, patronymic, gender)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllUsers")
 	}
 
 	var r0 []entities.User
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(int, int, string, string, string, string) ([]entities.User, error)); ok {
-		return returnFunc(limit, offset, name, surname, patronymic, gender)
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(int, int, string, string, string, string) ([]entities.User, int, error)); ok {
+		return returnFunc(pageSize, page, name, surname, patronymic, gender)
 	}
 	if returnFunc, ok := ret.Get(0).(func(int, int, string, string, string, string) []entities.User); ok {
-		r0 = returnFunc(limit, offset, name, surname, patronymic, gender)
+		r0 = returnFunc(pageSize, page, name, surname, patronymic, gender)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]entities.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(int, int, string, string, string, string) error); ok {
-		r1 = returnFunc(limit, offset, name, surname, patronymic, gender)
+	if returnFunc, ok := ret.Get(1).(func(int, int, string, string, string, string) int); ok {
+		r1 = returnFunc(pageSize, page, name, surname, patronymic, gender)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
-	return r0, r1
+	if returnFunc, ok := ret.Get(2).(func(int, int, string, string, string, string) error); ok {
+		r2 = returnFunc(pageSize, page, name, surname, patronymic, gender)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
 }
 
 // MockUserService_GetAllUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllUsers'
@@ -301,17 +309,17 @@ type MockUserService_GetAllUsers_Call struct {
 }
 
 // GetAllUsers is a helper method to define mock.On call
-//   - limit int
-//   - offset int
+//   - pageSize int
+//   - page int
 //   - name string
 //   - surname string
 //   - patronymic string
 //   - gender string
-func (_e *MockUserService_Expecter) GetAllUsers(limit interface{}, offset interface{}, name interface{}, surname interface{}, patronymic interface{}, gender interface{}) *MockUserService_GetAllUsers_Call {
-	return &MockUserService_GetAllUsers_Call{Call: _e.mock.On("GetAllUsers", limit, offset, name, surname, patronymic, gender)}
+func (_e *MockUserService_Expecter) GetAllUsers(pageSize interface{}, page interface{}, name interface{}, surname interface{}, patronymic interface{}, gender interface{}) *MockUserService_GetAllUsers_Call {
+	return &MockUserService_GetAllUsers_Call{Call: _e.mock.On("GetAllUsers", pageSize, page, name, surname, patronymic, gender)}
 }
 
-func (_c *MockUserService_GetAllUsers_Call) Run(run func(limit int, offset int, name string, surname string, patronymic string, gender string)) *MockUserService_GetAllUsers_Call {
+func (_c *MockUserService_GetAllUsers_Call) Run(run func(pageSize int, page int, name string, surname string, patronymic string, gender string)) *MockUserService_GetAllUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 int
 		if args[0] != nil {
@@ -349,12 +357,12 @@ func (_c *MockUserService_GetAllUsers_Call) Run(run func(limit int, offset int, 
 	return _c
 }
 
-func (_c *MockUserService_GetAllUsers_Call) Return(users []entities.User, err error) *MockUserService_GetAllUsers_Call {
-	_c.Call.Return(users, err)
+func (_c *MockUserService_GetAllUsers_Call) Return(users []entities.User, totalCount int, err error) *MockUserService_GetAllUsers_Call {
+	_c.Call.Return(users, totalCount, err)
 	return _c
 }
 
-func (_c *MockUserService_GetAllUsers_Call) RunAndReturn(run func(limit int, offset int, name string, surname string, patronymic string, gender string) ([]entities.User, error)) *MockUserService_GetAllUsers_Call {
+func (_c *MockUserService_GetAllUsers_Call) RunAndReturn(run func(pageSize int, page int, name string, surname string, patronymic string, gender string) ([]entities.User, int, error)) *MockUserService_GetAllUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -472,6 +480,216 @@ func (_c *MockUserService_UpdateUser_Call) Return(err error) *MockUserService_Up
 }
 
 func (_c *MockUserService_UpdateUser_Call) RunAndReturn(run func(id int32, params entities.UpdateUserParams) error) *MockUserService_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewMockRedisService creates a new instance of MockRedisService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewMockRedisService(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *MockRedisService {
+	mock := &MockRedisService{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
+
+// MockRedisService is an autogenerated mock type for the RedisService type
+type MockRedisService struct {
+	mock.Mock
+}
+
+type MockRedisService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockRedisService) EXPECT() *MockRedisService_Expecter {
+	return &MockRedisService_Expecter{mock: &_m.Mock}
+}
+
+// Delete provides a mock function for the type MockRedisService
+func (_mock *MockRedisService) Delete(ctx context.Context, key string) error {
+	ret := _mock.Called(ctx, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRedisService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type MockRedisService_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+func (_e *MockRedisService_Expecter) Delete(ctx interface{}, key interface{}) *MockRedisService_Delete_Call {
+	return &MockRedisService_Delete_Call{Call: _e.mock.On("Delete", ctx, key)}
+}
+
+func (_c *MockRedisService_Delete_Call) Run(run func(ctx context.Context, key string)) *MockRedisService_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRedisService_Delete_Call) Return(err error) *MockRedisService_Delete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRedisService_Delete_Call) RunAndReturn(run func(ctx context.Context, key string) error) *MockRedisService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Get provides a mock function for the type MockRedisService
+func (_mock *MockRedisService) Get(ctx context.Context, key string, dest any) error {
+	ret := _mock.Called(ctx, key, dest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, any) error); ok {
+		r0 = returnFunc(ctx, key, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRedisService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type MockRedisService_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+//   - dest any
+func (_e *MockRedisService_Expecter) Get(ctx interface{}, key interface{}, dest interface{}) *MockRedisService_Get_Call {
+	return &MockRedisService_Get_Call{Call: _e.mock.On("Get", ctx, key, dest)}
+}
+
+func (_c *MockRedisService_Get_Call) Run(run func(ctx context.Context, key string, dest any)) *MockRedisService_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 any
+		if args[2] != nil {
+			arg2 = args[2].(any)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRedisService_Get_Call) Return(err error) *MockRedisService_Get_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRedisService_Get_Call) RunAndReturn(run func(ctx context.Context, key string, dest any) error) *MockRedisService_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Set provides a mock function for the type MockRedisService
+func (_mock *MockRedisService) Set(ctx context.Context, key string, value any) error {
+	ret := _mock.Called(ctx, key, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Set")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, any) error); ok {
+		r0 = returnFunc(ctx, key, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRedisService_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
+type MockRedisService_Set_Call struct {
+	*mock.Call
+}
+
+// Set is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+//   - value any
+func (_e *MockRedisService_Expecter) Set(ctx interface{}, key interface{}, value interface{}) *MockRedisService_Set_Call {
+	return &MockRedisService_Set_Call{Call: _e.mock.On("Set", ctx, key, value)}
+}
+
+func (_c *MockRedisService_Set_Call) Run(run func(ctx context.Context, key string, value any)) *MockRedisService_Set_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 any
+		if args[2] != nil {
+			arg2 = args[2].(any)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRedisService_Set_Call) Return(err error) *MockRedisService_Set_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRedisService_Set_Call) RunAndReturn(run func(ctx context.Context, key string, value any) error) *MockRedisService_Set_Call {
 	_c.Call.Return(run)
 	return _c
 }

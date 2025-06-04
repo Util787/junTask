@@ -36,6 +36,7 @@ func main() {
 
 	log := setupLogger(servConfig.Env)
 
+	//postgres init
 	dbConfig := config.InitDbConfig()
 	postgresDB, err := repository.NewPostgresDB(*dbConfig)
 	if err != nil {
@@ -44,10 +45,21 @@ func main() {
 	}
 	log.Info("Connected to db successfully")
 
-	repos := repository.NewRepository(postgresDB)
+	//redis init
+	redisConfig := config.InitRedisConfig()
+	redis, err := repository.NewRedisClient(*redisConfig)
+	if err != nil {
+		log.Error("Failed to connect to redis", sl.Err(err))
+		return
+	}
+	log.Info("Connected to redis successfully")
+
+	//layers
+	repos := repository.NewRepository(postgresDB, redis)
 	services := service.NewService(repos)
 	handlers := handlers.NewHandlers(services, log)
 
+	//server start
 	srv := entities.Server{}
 	go func() {
 		err := srv.Run(servConfig.Port, handlers.InitRoutes(servConfig.Env))
@@ -64,6 +76,10 @@ func main() {
 	log.Info("Shutting down the server")
 	if err := srv.Shutdown(context.Background()); err != nil {
 		log.Error("Failed to shut down the server", sl.Err(err))
+	}
+
+	if err := redis.Close(); err != nil {
+		log.Error("Error occurred during redis connection closing", sl.Err(err))
 	}
 
 	if err := postgresDB.Close(); err != nil {
