@@ -1,26 +1,32 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
 	"unicode"
 
 	"github.com/Util787/junTask/entities"
+	"github.com/Util787/junTask/internal/logger/sl"
 	"github.com/gin-gonic/gin"
 )
 
 // getAllUsers godoc
 // @Summary      get all users with optionally filters and pagination
 // @Description  Get users using flexible query filters and pagination. You can provide partial values for `name`, `surname`, or `patronymic` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.
-// @Description  Example: ?limit=5&offset=10
-// @Description  Response: 5 users with offset=10
-// @Description  Example: ?name=al
+// @Description
+// @Description  Example: ?page=5&page_size=10
+// @Description  Response: 10 users with offset=40
+// @Description
+// @Description  Example2: ?name=al
 // @Description  Response: Alex, Alina, etc.
-// @Description  Example2: ?name=al&surname=sh
+// @Description
+// @Description  Example3: ?name=al&surname=sh
 // @Description  Response: Alexandr Shprot, Alina Sham, etc.
 // @Tags         users
 // @Accept       json
@@ -29,14 +35,14 @@ import (
 // @Param        surname     query     string  false "surname filter"
 // @Param        patronymic  query     string  false "patronymic filter"
 // @Param        gender      query     string  false  "gender filter can be only male or female"
-// @Param        limit       query     int     false  "default:0"
-// @Param        offset      query     int     false  "default:0"
+// @Param        page_size       query     int     false  "min:5"
+// @Param        page      query     int     false  "min:1"
 // @Success      200  {array}  entities.User
 // @Failure      400  {object}  errorResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /users [get]
 func (h *Handler) getAllUsers(c *gin.Context) {
-	//can add uuid to every operation individually to track it
+	//can add uuid to every operation to track it individually
 	const op = "getAllUsers"
 	log := h.log.With(
 		slog.String("op", op),
@@ -44,51 +50,47 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
+	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	name := c.DefaultQuery("name", "")
 	surname := c.DefaultQuery("surname", "")
 	patronymic := c.DefaultQuery("patronymic", "")
 	gender := c.DefaultQuery("gender", "")
 
-	// validation
-	limitStr := c.DefaultQuery("limit", "5")
-	parsedLimit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		parsedLimit = 5
-		log.Debug("Invalid limit value, set to 5", slog.String("user's limit", limitStr))
+	//validation
+	pageSizeStr := c.DefaultQuery("page_size", "5")
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 5 {
+		pageSize = 5
+		log.Debug("Invalid page_size value, set to 5", slog.String("user's page_size", pageSizeStr))
 	}
-	if parsedLimit > 100 {
-		log.Debug("Limit is greater than 100, set to 100", slog.String("user's limit", limitStr))
-	}
-
-	//TODO: add request to check count of pages, offset must not be greater than that value-1(example: if count if 17, offset must be at most 16)
-	offsetStr := c.DefaultQuery("offset", "0")
-	parsedOffset, err := strconv.Atoi(offsetStr)
-	if err != nil {
-		parsedOffset = 0
-		log.Debug("Invalid offset value, set to 0", slog.String("offset", offsetStr))
+	if pageSize > 50 {
+		log.Debug("page_size is greater than 50, set to 50", slog.String("user's page_size", pageSizeStr))
 	}
 
-	log.Info("Getting all users with parameters",
-		slog.Int("limit", parsedLimit),
-		slog.Int("offset", parsedOffset),
-		slog.String("name", name),
-		slog.String("surname", surname),
-		slog.String("patronymic", patronymic),
-		slog.String("gender", gender),
-	)
+	pageStr := c.DefaultQuery("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page <= 0 {
+		page = 1
+		log.Debug("Invalid page value, set to 1", slog.String("page", pageStr))
+	}
 
-	allUsers, err := h.services.UserService.GetAllUsers(int(parsedLimit), int(parsedOffset), name, surname, patronymic, gender)
+	log.Info("Getting all users with parameters", slog.Int("page_size", pageSize), slog.Int("page", page), slog.String("name", name), slog.String("surname", surname), slog.String("patronymic", patronymic), slog.String("gender", gender))
+
+	//I think using cache here might be useless because of variations of keys due to many filters
+	allUsers, totalCount, err := h.services.UserService.GetAllUsers(pageSize, page, name, surname, patronymic, gender)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to get users", err)
 		return
 	}
 
-	duration := time.Since(start).Milliseconds()
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
+	//check for invalid page num, totalPages also may be used by frontend
+	totalPages := math.Ceil(float64(totalCount) / float64(pageSize))
+	if page > int(totalPages) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Page exceeds total number of pages", errors.New("page exceeds max of pages"))
+		return
 	}
+
 	log.Info("Got users successfully", slog.Int("count", len(allUsers)))
 
 	c.JSON(http.StatusOK, allUsers)
@@ -113,6 +115,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
+	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	var user entities.FullName
 	err := c.ShouldBindJSON(&user)
@@ -166,11 +169,6 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	duration := time.Since(start).Milliseconds()
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
-	}
 	log.Info("Created user successfully", slog.Any("created_user", createdUser))
 
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
@@ -194,6 +192,7 @@ func (h *Handler) getUserById(c *gin.Context) {
 	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
+	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 	userId32, err := parseInt32(userIdStr)
@@ -202,18 +201,29 @@ func (h *Handler) getUserById(c *gin.Context) {
 		return
 	}
 
-	log.Info("Getting user by ID", slog.Int("user_id", int(userId32)))
-	user, err := h.services.UserService.GetUserById(userId32)
+	//cache check
+	var user entities.User
+	cacheKey := "user:" + userIdStr
+	err = h.services.RedisService.Get(context.Background(), cacheKey, &user)
+	if err == nil {
+		log.Info("User found in cache", slog.Int("user_id", int(userId32)))
+		c.JSON(http.StatusOK, user)
+		return
+	}
+
+	log.Info("Getting user by ID from postgres db", slog.Int("user_id", int(userId32)))
+	user, err = h.services.UserService.GetUserById(userId32)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusNotFound, "User not found", err)
 		return
 	}
 
-	duration := time.Since(start).Milliseconds()
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
+	//cache set
+	err = h.services.RedisService.Set(context.Background(), cacheKey, user)
+	if err != nil {
+		log.Warn("Failed to set user in cache", slog.Int("user_id", int(userId32)), sl.Err(err))
 	}
+
 	log.Info("Got user successfully", slog.Any("user", user))
 
 	c.JSON(http.StatusOK, user)
@@ -239,6 +249,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
+	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 
@@ -292,11 +303,6 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	duration := time.Since(start).Milliseconds()
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
-	}
 	log.Info("Updated user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
@@ -321,6 +327,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
 	start := time.Now()
 	log.Debug("Start", slog.Time("start_time", start))
+	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 
@@ -349,11 +356,6 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		return
 	}
 
-	duration := time.Since(start).Milliseconds()
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
-	}
 	log.Info("Deleted user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
@@ -374,4 +376,11 @@ func haveDigits(s string) bool {
 		}
 	}
 	return false
+}
+
+func logDurationAndFinish(log *slog.Logger, duration int64) {
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 }

@@ -18,8 +18,6 @@ definitions:
         type: integer
       gender:
         type: string
-      id:
-        type: integer
       name:
         type: string
       nationality:
@@ -27,8 +25,6 @@ definitions:
       patronymic:
         type: string
       surname:
-        type: string
-      updated_at:
         type: string
     type: object
   entities.User:
@@ -63,7 +59,7 @@ definitions:
 host: localhost:8000
 info:
   contact: {}
-  description: Junior Golang Developer test task for Effective Mobile
+  description: Junior Golang Developer test task
   title: Jun task api
   version: "1.0"
 paths:
@@ -73,11 +69,14 @@ paths:
       - application/json
       description: |-
         Get users using flexible query filters and pagination. You can provide partial values for `name`, `surname`, or `patronymic` — filtering will still work. Each of these parameters is optional and can be used independently or in combination.
-        Example: ?limit=5&offset=10
-        Response: 5 users with offset=10
-        Example: ?name=al
+
+        Example: ?page=5&page_size=10
+        Response: 10 users with offset=40
+
+        Example2: ?name=al
         Response: Alex, Alina, etc.
-        Example2: ?name=al&surname=sh
+
+        Example3: ?name=al&surname=sh
         Response: Alexandr Shprot, Alina Sham, etc.
       parameters:
       - description: name filter
@@ -96,13 +95,13 @@ paths:
         in: query
         name: gender
         type: string
-      - description: default:0
+      - description: min:5
         in: query
-        name: limit
+        name: page_size
         type: integer
-      - description: default:0
+      - description: min:1
         in: query
-        name: offset
+        name: page
         type: integer
       produces:
       - application/json

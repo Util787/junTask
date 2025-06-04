@@ -18,8 +18,8 @@ func (u *userService) CreateUser(params entities.User) (entities.User, error) {
 	return u.userRepo.CreateUser(params)
 }
 
-func (u *userService) GetAllUsers(limit, offset int, name, surname, patronymic, gender string) ([]entities.User, error) {
-	return u.userRepo.GetAllUsers(limit, offset, name, surname, patronymic, gender)
+func (u *userService) GetAllUsers(pageSize, page int, name, surname, patronymic, gender string) ([]entities.User, int, error) {
+	return u.userRepo.GetAllUsers(pageSize, page, name, surname, patronymic, gender)
 }
 
 func (u *userService) ExistByFullName(params entities.FullName) (bool, error) {
