@@ -49,13 +49,18 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 	patronymic := c.DefaultQuery("patronymic", "")
 	gender := c.DefaultQuery("gender", "")
 
-	limitStr := c.DefaultQuery("limit", "0")
+	// validation
+	limitStr := c.DefaultQuery("limit", "5")
 	parsedLimit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		parsedLimit = 0
-		log.Debug("Invalid limit value, set to 0", slog.String("limit", limitStr))
+		parsedLimit = 5
+		log.Debug("Invalid limit value, set to 5", slog.String("user's limit", limitStr))
+	}
+	if parsedLimit > 100 {
+		log.Debug("Limit is greater than 100, set to 100", slog.String("user's limit", limitStr))
 	}
 
+	//TODO: add request to check count of pages, offset must not be greater than that value-1(example: if count if 17, offset must be at most 16)
 	offsetStr := c.DefaultQuery("offset", "0")
 	parsedOffset, err := strconv.Atoi(offsetStr)
 	if err != nil {
@@ -78,7 +83,11 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
+	duration := time.Since(start).Milliseconds()
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 	log.Info("Got users successfully", slog.Int("count", len(allUsers)))
 
 	c.JSON(http.StatusOK, allUsers)
@@ -155,7 +164,11 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
+	duration := time.Since(start).Milliseconds()
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 	log.Info("Created user successfully", slog.Any("created_user", createdUser))
 
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
@@ -193,7 +206,11 @@ func (h *Handler) getUserById(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
+	duration := time.Since(start).Milliseconds()
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 	log.Info("Got user successfully", slog.Any("user", user))
 
 	c.JSON(http.StatusOK, user)
@@ -270,7 +287,12 @@ func (h *Handler) updateUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
-	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
+
+	duration := time.Since(start).Milliseconds()
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 	log.Info("Updated user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
@@ -321,7 +343,12 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Cannot find user", err)
 		return
 	}
-	log.Debug("Operation finished", slog.Int64("duration_ms", time.Since(start).Milliseconds()))
+
+	duration := time.Since(start).Milliseconds()
+	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
+	if duration > 1000 {
+		log.Warn("Operation is taking more than 1 second")
+	}
 	log.Info("Deleted user successfully", slog.Int("user_id", int(userId32)))
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User with id:%s deleted successfully", userIdStr)})
