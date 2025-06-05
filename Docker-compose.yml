@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  juntask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"
+
+  postgres:
+    image: postgres:17.5
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5437:5432"
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - ./sql/schema:/migrations
+    command: ["-path", "/migrations/", "-database", "postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/postgres?sslmode=disable", "up"]
+  
+  redis:
+    image: redis:8.0.2
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}  
+    ports:
+      - "6378:6379"

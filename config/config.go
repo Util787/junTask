@@ -15,7 +15,7 @@ type ServerConfig struct {
 func InitServerConfig() *ServerConfig {
 	err := godotenv.Load()
 	if err != nil {
-		panic("Failed to load .env file. Make sure all required .env variables are set")
+		panic("Failed to load .env file. Make sure all required .env variables are set: " + err.Error())
 	}
 
 	env := os.Getenv("ENV")
@@ -25,7 +25,7 @@ func InitServerConfig() *ServerConfig {
 
 	return &ServerConfig{
 		Env:  env,
-		Port: os.Getenv("SERVERPORT"),
+		Port: os.Getenv("SERVER_PORT"),
 	}
 }
 
