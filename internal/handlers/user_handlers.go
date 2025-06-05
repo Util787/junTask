@@ -84,7 +84,12 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 		return
 	}
 
-	//check for invalid page num, totalPages also may be used by frontend
+	if page == 1 && totalCount == 0 {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	//check for invalid page num, totalPages also may be used by frontend but totalcount == 0 and status code 404 may be used here as well
 	totalPages := math.Ceil(float64(totalCount) / float64(pageSize))
 	if page > int(totalPages) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Page exceeds total number of pages", errors.New("page exceeds max of pages"))

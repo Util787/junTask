@@ -62,7 +62,7 @@ func main() {
 	//server start
 	srv := entities.Server{}
 	go func() {
-		err := srv.Run(servConfig.Port, handlers.InitRoutes(servConfig.Env))
+		err := srv.CreateAndRun(servConfig.Port, handlers.InitRoutes(servConfig.Env))
 		if err != nil {
 			log.Error("Server was interrupted", sl.Err(err))
 		}

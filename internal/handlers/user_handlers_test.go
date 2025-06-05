@@ -105,7 +105,7 @@ func TestHandler_createUser(t *testing.T) {
 		t.Run(test.testname, func(t *testing.T) {
 			mockUserService := mocks.NewMockUserService(t)
 			mockInfoRequestService := mocks.NewMockInfoRequestService(t)
-			router := setupRouterWithMock(mockUserService, mockInfoRequestService)
+			router := setupTestRouter(mockUserService, mockInfoRequestService, nil)
 
 			resp := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(test.inputBody))
@@ -124,13 +124,13 @@ func TestHandler_createUser(t *testing.T) {
 	}
 }
 
-func setupRouterWithMock(mockUserService *mocks.MockUserService, mockInfoRequestService *mocks.MockInfoRequestService) *gin.Engine {
+func setupTestRouter(mockUserService *mocks.MockUserService, mockInfoRequestService *mocks.MockInfoRequestService, redisService *mocks.MockRedisService) *gin.Engine {
 	logger := slogdiscard.NewDiscardLogger()
 
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
 
-	service := &service.Service{UserService: mockUserService, InfoRequestService: mockInfoRequestService}
+	service := &service.Service{UserService: mockUserService, InfoRequestService: mockInfoRequestService, RedisService: redisService}
 	h := NewHandlers(service, logger)
 
 	router.GET("/users", h.getAllUsers)
@@ -140,4 +140,44 @@ func setupRouterWithMock(mockUserService *mocks.MockUserService, mockInfoRequest
 	router.DELETE("/users/:user_id", h.deleteUser)
 
 	return router
+}
+
+// Signature: GetAllUsers(pageSize, page int, name, surname, patronymic, gender string) (users []entities.User, totalCount int,err error)
+func TestHandler_getAllUsers(t *testing.T) {
+
+	tests := []struct {
+		testname                string
+		queryStr                string
+		mockGetAllUsersBehavior func(s *mocks.MockUserService)
+		expectedStatusCode      int
+		expectedResponseBody    string
+	}{
+		{
+			testname: "Ok",
+			queryStr: "",
+			mockGetAllUsersBehavior: func(s *mocks.MockUserService) {
+				s.On("GetAllUsers", 5, 1, "", "", "", "").Return([]entities.User{{Name: "Aleksey", Surname: "Ivanov"}}, 1, nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `"name":"Aleksey","surname":"Ivanov"`,
+		},
+		//TODO: add more testcases
+	}
+	for _, test := range tests {
+		t.Run(test.testname, func(t *testing.T) {
+			mockUserService := mocks.NewMockUserService(t)
+			router := setupTestRouter(mockUserService, nil, nil)
+
+			resp := httptest.NewRecorder()
+
+			req := httptest.NewRequest("GET", "/users"+test.queryStr, nil)
+
+			test.mockGetAllUsersBehavior(mockUserService)
+
+			router.ServeHTTP(resp, req)
+
+			assert.Equal(t, test.expectedStatusCode, resp.Code)
+			assert.Contains(t, resp.Body.String(), test.expectedResponseBody)
+		})
+	}
 }
