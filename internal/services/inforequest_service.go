@@ -11,6 +11,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const apiCallsTimeOut = 10 * time.Second
+
 func NewInfoRequestService() InfoRequestService {
 	return &infoRequestService{}
 }
@@ -54,7 +56,7 @@ func requestUserAdditionalInfo(name string) (age int, gender string, nationality
 	var genderResp genderizeResponse
 	var natResp nationalizeResponse
 
-	timeOutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	timeOutCtx, cancel := context.WithTimeout(context.Background(), apiCallsTimeOut)
 	defer cancel()
 
 	errGr, ctx := errgroup.WithContext(timeOutCtx)
