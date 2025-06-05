@@ -30,7 +30,6 @@ services:
       timeout: 5s
       retries: 5
 
-
   migrate:
     image: migrate/migrate
     depends_on:

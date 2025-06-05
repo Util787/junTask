@@ -26,7 +26,7 @@ Example:
 
 ```
 ENV=local
-SERVERPORT=8000
+SERVER_PORT=8000
 DB_HOST=localhost
 DB_PORT=5436
 DB_USERNAME=postgres
