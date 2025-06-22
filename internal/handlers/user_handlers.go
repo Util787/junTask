@@ -59,6 +59,7 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 		log.Debug("Invalid page_size value, set to 5", slog.String("user's page_size", pageSizeStr))
 	}
 	if pageSize > 50 {
+		pageSize = 50
 		log.Debug("page_size is greater than 50, set to 50", slog.String("user's page_size", pageSizeStr))
 	}
 
