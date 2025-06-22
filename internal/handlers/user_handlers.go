@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"time"
 	"unicode"
 
 	"github.com/Util787/junTask/entities"
@@ -42,15 +41,10 @@ import (
 // @Failure      500  {object}  errorResponse
 // @Router       /users [get]
 func (h *Handler) getAllUsers(c *gin.Context) {
-	//can add uuid to every operation to track it individually
-	const op = "getAllUsers"
+	op, _ := c.Get("op")
 	log := h.log.With(
-		slog.String("op", op),
+		slog.Any("op", op),
 	)
-	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
-	start := time.Now()
-	log.Debug("Start", slog.Time("start_time", start))
-	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	name := c.DefaultQuery("name", "")
 	surname := c.DefaultQuery("surname", "")
@@ -113,29 +107,24 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 // @Failure      500  {object}  errorResponse
 // @Router       /users [post]
 func (h *Handler) createUser(c *gin.Context) {
-	const op = "createUser"
+	op, _ := c.Get("op")
 	log := h.log.With(
-		slog.String("op", op),
+		slog.Any("op", op),
 	)
-	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
-	start := time.Now()
-	log.Debug("Start", slog.Time("start_time", start))
-	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
-	var user entities.FullName
-	err := c.ShouldBindJSON(&user)
+	var fullName entities.FullName
+	err := c.ShouldBindJSON(&fullName)
 	if err != nil {
-		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json in createUser handler", err)
+		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json", err)
 		return
 	}
 
-	//validation
-	if haveDigits(user.Name) || haveDigits(user.Surname) || haveDigits(user.Patronymic) {
+	if haveDigits(fullName.Name) || haveDigits(fullName.Surname) || haveDigits(fullName.Patronymic) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
 		return
 	}
 
-	exists, err := h.services.UserService.ExistByFullName(user)
+	exists, err := h.services.UserService.ExistByFullName(fullName)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Failed to check if the user exists", err)
 		return
@@ -145,23 +134,16 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	log.Info("Requesting additional info")
-	age, gender, nationality, err := h.services.InfoRequestService.RequestAdditionalInfo(user.Name)
+	age, gender, nationality, err := h.services.InfoRequestService.RequestAdditionalInfo(fullName.Name)
 	if err != nil {
 		newErrorResponse(c, log, http.StatusInternalServerError, "Requests timed out or service is unreachable", err)
 		return
 	}
 
-	log.Debug("Received additional info",
-		slog.Int("age", age),
-		slog.String("gender", gender),
-		slog.String("nationality", nationality),
-	)
-
 	params := entities.User{
-		Name:        user.Name,
-		Surname:     user.Surname,
-		Patronymic:  user.Patronymic,
+		Name:        fullName.Name,
+		Surname:     fullName.Surname,
+		Patronymic:  fullName.Patronymic,
 		Age:         age,
 		Gender:      gender,
 		Nationality: nationality,
@@ -176,7 +158,7 @@ func (h *Handler) createUser(c *gin.Context) {
 
 	log.Info("Created user successfully", slog.Any("created_user", createdUser))
 
-	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("user created successfully with id: %v", createdUser.Id)})
+	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("User created successfully with id: %d", createdUser.Id)})
 }
 
 // getUserById godoc
@@ -190,14 +172,10 @@ func (h *Handler) createUser(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [get]
 func (h *Handler) getUserById(c *gin.Context) {
-	const op = "getUserById"
+	op, _ := c.Get("op")
 	log := h.log.With(
-		slog.String("op", op),
+		slog.Any("op", op),
 	)
-	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
-	start := time.Now()
-	log.Debug("Start", slog.Time("start_time", start))
-	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 	userId32, err := parseInt32(userIdStr)
@@ -247,14 +225,10 @@ func (h *Handler) getUserById(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [patch]
 func (h *Handler) updateUser(c *gin.Context) {
-	const op = "updateUser"
+	op, _ := c.Get("op")
 	log := h.log.With(
-		slog.String("op", op),
+		slog.Any("op", op),
 	)
-	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
-	start := time.Now()
-	log.Debug("Start", slog.Time("start_time", start))
-	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 
@@ -325,14 +299,10 @@ func (h *Handler) updateUser(c *gin.Context) {
 // @Failure      500      {object}  errorResponse
 // @Router       /users/{user_id} [delete]
 func (h *Handler) deleteUser(c *gin.Context) {
-	const op = "deleteUser"
+	op, _ := c.Get("op")
 	log := h.log.With(
-		slog.String("op", op),
+		slog.Any("op", op),
 	)
-	log.Info("Request recieved", slog.String("ip", c.ClientIP()), slog.String("user_agent", c.GetHeader("User-Agent")))
-	start := time.Now()
-	log.Debug("Start", slog.Time("start_time", start))
-	defer func() { logDurationAndFinish(log, time.Since(start).Milliseconds()) }()
 
 	userIdStr := c.Param("user_id")
 
@@ -381,11 +351,4 @@ func haveDigits(s string) bool {
 		}
 	}
 	return false
-}
-
-func logDurationAndFinish(log *slog.Logger, duration int64) {
-	log.Debug("Operation finished", slog.Int64("duration_ms", duration))
-	if duration > 1000 {
-		log.Warn("Operation is taking more than 1 second")
-	}
 }

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	_ "github.com/Util787/junTask/docs"
+	"github.com/Util787/junTask/internal/handlers/middleware"
 	service "github.com/Util787/junTask/internal/services"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -32,6 +33,7 @@ func (h *Handler) InitRoutes(env string) *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api")
+	api.Use(middleware.LoggingMiddleware(h.log))
 	{
 		users := api.Group("/users")
 		{
