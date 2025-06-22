@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const redisTTL = 5 * time.Second
+const redisTTL = 15 * time.Second
 
 type redisRepository struct {
 	redis *redis.Client
