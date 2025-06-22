@@ -7,8 +7,9 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"regexp"
 	"strconv"
-	"unicode"
+	"strings"
 
 	"github.com/Util787/junTask/entities"
 	"github.com/Util787/junTask/internal/logger/sl"
@@ -119,9 +120,9 @@ func (h *Handler) createUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Failed to parse json", err)
 		return
 	}
-
-	if haveDigits(fullName.Name) || haveDigits(fullName.Surname) || haveDigits(fullName.Patronymic) {
-		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic must not contain digits", errors.New("name,surname or patronimyc contain digits"))
+	//validation
+	if !isValidFullnameField(fullName.Name) || !isValidFullnameField(fullName.Surname) || !isValidFullnameField(fullName.Patronymic) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic is invalid", errors.New("name,surname or patronimyc is invalid"))
 		return
 	}
 
@@ -259,16 +260,16 @@ func (h *Handler) updateUser(c *gin.Context) {
 	}
 
 	//validation
-	if user.Name != nil && haveDigits(*user.Name) {
-		newErrorResponse(c, log, http.StatusBadRequest, "Name must not contain digits", errors.New("name contain digits"))
+	if user.Name != nil && !isValidFullnameField(*user.Name) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Invalid name", errors.New("invalid name"))
 		return
 	}
-	if user.Surname != nil && haveDigits(*user.Surname) {
-		newErrorResponse(c, log, http.StatusBadRequest, "Surname must not contain digits", errors.New("surname contain digits"))
+	if user.Surname != nil && !isValidFullnameField(*user.Surname) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Invalid surname", errors.New("invalid surname"))
 		return
 	}
-	if user.Patronymic != nil && haveDigits(*user.Patronymic) {
-		newErrorResponse(c, log, http.StatusBadRequest, "Patronymic must not contain digits", errors.New("patronimyc contain digits"))
+	if user.Patronymic != nil && !isValidFullnameField(*user.Patronymic) {
+		newErrorResponse(c, log, http.StatusBadRequest, "Invalid patronymic", errors.New("invalid patronymic"))
 		return
 	}
 	if user.Gender != nil && *user.Gender != "female" && *user.Gender != "male" {
@@ -345,11 +346,9 @@ func parseInt32(numStr string) (int32, error) {
 	return int32(parsedNum), nil
 }
 
-func haveDigits(s string) bool {
-	for _, r := range s {
-		if unicode.IsDigit(r) {
-			return true
-		}
-	}
-	return false
+var nameRe = regexp.MustCompile(`^[A-ZА-ЯЁ][a-zа-яё]{1,49}$`)
+
+func isValidFullnameField(s string) bool {
+	s = strings.TrimSpace(s)
+	return nameRe.MatchString(s)
 }
