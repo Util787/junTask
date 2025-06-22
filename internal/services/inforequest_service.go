@@ -11,7 +11,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const apiCallsTimeOut = 10 * time.Second
+const apiCallsTimeOut = 5 * time.Second
 
 func NewInfoRequestService() InfoRequestService {
 	return &infoRequestService{}
