@@ -12,11 +12,12 @@ type Server struct {
 
 func (s *Server) CreateAndRun(port string, handler http.Handler) error {
 	s.httpServer = &http.Server{
-		Addr:           ":" + port,
-		Handler:        handler,
-		MaxHeaderBytes: 1 << 20, // 1 MB
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		Addr:              ":" + port,
+		Handler:           handler,
+		MaxHeaderBytes:    1 << 20, // 1 MB
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	if err := s.httpServer.ListenAndServe(); err != nil {

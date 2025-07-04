@@ -1,0 +1,2 @@
+-- This is an empty migration for version 0
+-- This represents the initial state of the database and should be used only for testing purposes

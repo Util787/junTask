@@ -17,4 +17,4 @@ CREATE TABLE users(
 
 -- to create your own migrations
 -- example:
--- migrate create -ext sql -dir ./sql/schema -seq add_gender_index   
+-- migrate create -ext sql -dir ./sql/schema -seq add_some_index   
