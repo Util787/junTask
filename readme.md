@@ -1,4 +1,4 @@
-# Test Task REST API
+# User manager REST API
 
 This is a RESTful API for managing users. It features user creation, retrieval, updating, and deletion, along with external API integration and caching.
 
@@ -35,14 +35,17 @@ Create a `.env` file and configure according to your environment (`prod`, `dev`,
 
 ```env
 ENV=local
-SERVER_PORT=8000
-DB_HOST=localhost
+HTTP_PORT=8000
+HTTP_READ_HEADER_TIMEOUT=5s
+HTTP_WRITE_TIMEOUT=10s
+HTTP_READ_TIMEOUT=10s 
+DB_HOST=postgres
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=1111
 DB_NAME=postgres
-SSLMODE=disable
-REDIS_HOST=localhost
+DB_SSLMODE=disable
+REDIS_HOST=redis  
 REDIS_PORT=6379
 REDIS_PASSWORD=2222
 REDIS_DB=0
