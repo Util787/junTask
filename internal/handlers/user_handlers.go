@@ -124,7 +124,7 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 	//validation
-	if !isValidFullnameField(fullName.Name) || !isValidFullnameField(fullName.Surname) || !isValidFullnameField(fullName.Patronymic) {
+	if !isValidFullnameField(fullName.Name) || !isValidFullnameField(fullName.Surname) || (fullName.Patronymic != "" && !isValidFullnameField(fullName.Patronymic)) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Name, Surname or Patronymic is invalid", errors.New("name,surname or patronimyc is invalid"))
 		return
 	}
@@ -271,12 +271,12 @@ func (h *Handler) updateUser(c *gin.Context) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Invalid surname", errors.New("invalid surname"))
 		return
 	}
-	if user.Patronymic != nil && !isValidFullnameField(*user.Patronymic) {
+	if user.Patronymic != nil && *user.Patronymic != "" && !isValidFullnameField(*user.Patronymic) {
 		newErrorResponse(c, log, http.StatusBadRequest, "Invalid patronymic", errors.New("invalid patronymic"))
 		return
 	}
 	if user.Gender != nil && *user.Gender != "female" && *user.Gender != "male" {
-		newErrorResponse(c, log, http.StatusBadRequest, "Gender must be 'male' or 'female'", errors.New("unknown gender"))
+		newErrorResponse(c, log, http.StatusBadRequest, "Gender must be 'male' or 'female'", errors.New("invalid gender"))
 		return
 	}
 
