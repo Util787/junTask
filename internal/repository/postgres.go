@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	"github.com/Util787/user-manager-api/config"
+	"github.com/Util787/user-manager-api/internal/config"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,12 +16,12 @@ func NewPostgresDB(cfg config.DBConfig) (*sqlx.DB, error) {
 
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to ping db: %w", err)
 	}
 
 	return db, nil

@@ -3,21 +3,22 @@ package entities
 import (
 	"context"
 	"net/http"
-	"time"
+
+	"github.com/Util787/user-manager-api/internal/config"
 )
 
 type Server struct {
 	httpServer *http.Server
 }
 
-func (s *Server) CreateAndRun(port string, handler http.Handler) error {
+func (s *Server) CreateAndRun(config *config.ServerConfig, handler http.Handler) error {
 	s.httpServer = &http.Server{
-		Addr:              ":" + port,
+		Addr:              ":" + config.Port,
 		Handler:           handler,
 		MaxHeaderBytes:    1 << 20, // 1 MB
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: config.ReadHeaderTimeout,
+		WriteTimeout:      config.WriteTimeout,
+		ReadTimeout:       config.ReadTimeout,
 	}
 
 	if err := s.httpServer.ListenAndServe(); err != nil {

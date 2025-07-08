@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/Util787/user-manager-api/config"
 	"github.com/Util787/user-manager-api/entities"
+	"github.com/Util787/user-manager-api/internal/config"
 	"github.com/Util787/user-manager-api/internal/handlers"
 	"github.com/Util787/user-manager-api/internal/logger/handlers/slogpretty"
 	"github.com/Util787/user-manager-api/internal/logger/sl"
@@ -62,11 +62,12 @@ func main() {
 	//server start
 	srv := entities.Server{}
 	go func() {
-		err := srv.CreateAndRun(servConfig.Port, handlers.InitRoutes(servConfig.Env))
+		err := srv.CreateAndRun(servConfig, handlers.InitRoutes(servConfig.Env))
 		if err != nil {
 			log.Error("Server was interrupted", sl.Err(err))
 		}
 	}()
+	log.Info("Server started on port " + servConfig.Port)
 
 	//graceful shutdown
 	quit := make(chan os.Signal, 1)
