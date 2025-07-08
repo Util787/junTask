@@ -3,9 +3,9 @@ package handlers
 import (
 	"log/slog"
 
-	_ "github.com/Util787/junTask/docs"
-	"github.com/Util787/junTask/internal/handlers/middleware"
-	service "github.com/Util787/junTask/internal/services"
+	_ "github.com/Util787/user-manager-api/docs"
+	"github.com/Util787/user-manager-api/internal/handlers/middleware"
+	service "github.com/Util787/user-manager-api/internal/services"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

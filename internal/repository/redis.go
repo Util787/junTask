@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/Util787/junTask/config"
+	"github.com/Util787/user-manager-api/config"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -9,13 +9,13 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/Util787/junTask/config"
-	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/handlers"
-	"github.com/Util787/junTask/internal/logger/handlers/slogpretty"
-	"github.com/Util787/junTask/internal/logger/sl"
-	"github.com/Util787/junTask/internal/repository"
-	service "github.com/Util787/junTask/internal/services"
+	"github.com/Util787/user-manager-api/config"
+	"github.com/Util787/user-manager-api/entities"
+	"github.com/Util787/user-manager-api/internal/handlers"
+	"github.com/Util787/user-manager-api/internal/logger/handlers/slogpretty"
+	"github.com/Util787/user-manager-api/internal/logger/sl"
+	"github.com/Util787/user-manager-api/internal/repository"
+	service "github.com/Util787/user-manager-api/internal/services"
 )
 
 const (
@@ -24,9 +24,9 @@ const (
 	envProd  = "prod"
 )
 
-// @title           Jun task api
+// @title           User manager api
 // @version         1.0
-// @description     Junior Golang Developer test task
+// @description     Rest api for managing users crud operations
 
 // @host      localhost:8000
 // @BasePath  /api

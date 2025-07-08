@@ -6,11 +6,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o juntask ./cmd/main.go
+RUN go build -o user-manager-api ./cmd/main.go
 
 FROM alpine:3.22
 
-COPY --from=build /usr/src/app/juntask .   
+COPY --from=build /usr/src/app/user-manager-api .   
 COPY --from=build /usr/src/app/.env .   
-CMD ["./juntask"]
+CMD ["./user-manager-api"]
 

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/repository"
+	"github.com/Util787/user-manager-api/entities"
+	"github.com/Util787/user-manager-api/internal/repository"
 )
 
 // TODO: implement validation logic from handlers here

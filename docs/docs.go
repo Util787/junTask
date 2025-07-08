@@ -79,13 +79,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     }
                 }
@@ -126,13 +126,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     }
                 }
@@ -167,13 +167,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     }
                 }
@@ -212,13 +212,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     }
                 }
@@ -266,13 +266,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.errorResponse"
+                            "$ref": "#/definitions/internal_handlers.errorResponse"
                         }
                     }
                 }
@@ -357,7 +357,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.errorResponse": {
+        "internal_handlers.errorResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -374,8 +374,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "Jun task api",
-	Description:      "Junior Golang Developer test task",
+	Title:            "User manager api",
+	Description:      "Rest api for managing users crud operations",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

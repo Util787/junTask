@@ -51,7 +51,7 @@ definitions:
     - name
     - surname
     type: object
-  handlers.errorResponse:
+  internal_handlers.errorResponse:
     properties:
       message:
         type: string
@@ -59,8 +59,8 @@ definitions:
 host: localhost:8000
 info:
   contact: {}
-  description: Junior Golang Developer test task
-  title: Jun task api
+  description: Rest api for managing users crud operations
+  title: User manager api
   version: "1.0"
 paths:
   /users:
@@ -115,11 +115,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
       summary: get all users with optionally filters and pagination
       tags:
       - users
@@ -146,11 +146,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
       summary: create user
       tags:
       - users
@@ -177,11 +177,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
       summary: delete user by id
       tags:
       - users
@@ -203,11 +203,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
       summary: get user by id
       tags:
       - users
@@ -241,11 +241,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.errorResponse'
+            $ref: '#/definitions/internal_handlers.errorResponse'
       summary: update user info by id
       tags:
       - users

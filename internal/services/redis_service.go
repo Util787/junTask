@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/Util787/junTask/internal/repository"
+	"github.com/Util787/user-manager-api/internal/repository"
 )
 
 type redisService struct {

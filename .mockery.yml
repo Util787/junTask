@@ -11,7 +11,7 @@ require-template-schema-exists: true
 template: testify
 template-schema: '{{.Template}}.schema.json'
 packages:
-  github.com/Util787/junTask/internal/services:
+  github.com/Util787/user-manager-api/internal/services:
     config:
       all: true
       dir: ./internal/services/mocks

@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/logger/handlers/slogdiscard"
-	service "github.com/Util787/junTask/internal/services"
-	serviceMock "github.com/Util787/junTask/internal/services/mocks"
+	"github.com/Util787/user-manager-api/entities"
+	"github.com/Util787/user-manager-api/internal/logger/handlers/slogdiscard"
+	service "github.com/Util787/user-manager-api/internal/services"
+	serviceMock "github.com/Util787/user-manager-api/internal/services/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -29,15 +29,15 @@ func TestHandler_createUser(t *testing.T) {
 	}{
 		{
 			testname:  "Ok",
-			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			inputBody: `{"name":"Testname","surname":"Testsurname","patronymic":"Testpatronymic"}`,
 			mockExistBehavior: func(s *serviceMock.MockUserService) {
-				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
+				s.On("ExistByFullName", entities.FullName{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic"}).Return(false, nil)
 			},
 			mockInfoRequestBehavior: func(s *serviceMock.MockInfoRequestService) {
-				s.On("RequestAdditionalInfo", "testname").Return(41, "female", "BY", nil)
+				s.On("RequestAdditionalInfo", "Testname").Return(41, "female", "BY", nil)
 			},
 			mockCreateBehavior: func(s *serviceMock.MockUserService) {
-				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{Id: 3, Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}, nil)
+				s.On("CreateUser", entities.User{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{Id: 3, Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}, nil)
 			},
 			expectedStatusCode:   201,
 			expectedResponseBody: `{"message":"User created successfully with id: 3"}`,
@@ -53,24 +53,24 @@ func TestHandler_createUser(t *testing.T) {
 		},
 		{
 			testname:  "Create service error",
-			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			inputBody: `{"name":"Testname","surname":"Testsurname","patronymic":"Testpatronymic"}`,
 			mockExistBehavior: func(s *serviceMock.MockUserService) {
-				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
+				s.On("ExistByFullName", entities.FullName{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic"}).Return(false, nil)
 			},
 			mockInfoRequestBehavior: func(s *serviceMock.MockInfoRequestService) {
-				s.On("RequestAdditionalInfo", "testname").Return(41, "female", "BY", nil)
+				s.On("RequestAdditionalInfo", "Testname").Return(41, "female", "BY", nil)
 			},
 			mockCreateBehavior: func(s *serviceMock.MockUserService) {
-				s.On("CreateUser", entities.User{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{}, errors.New("Something went wrong"))
+				s.On("CreateUser", entities.User{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic", Age: 41, Gender: "female", Nationality: "BY"}).Return(entities.User{}, errors.New("Something went wrong"))
 			},
 			expectedStatusCode:   500,
 			expectedResponseBody: `{"message":"Failed to create user"}`,
 		},
 		{
 			testname:  "Exist service error",
-			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			inputBody: `{"name":"Testname","surname":"Testsurname","patronymic":"Testpatronymic"}`,
 			mockExistBehavior: func(s *serviceMock.MockUserService) {
-				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, errors.New("Something went wrong"))
+				s.On("ExistByFullName", entities.FullName{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic"}).Return(false, errors.New("Something went wrong"))
 			},
 			mockInfoRequestBehavior: func(s *serviceMock.MockInfoRequestService) {},
 			mockCreateBehavior:      func(s *serviceMock.MockUserService) {},
@@ -79,9 +79,9 @@ func TestHandler_createUser(t *testing.T) {
 		},
 		{
 			testname:  "User already exists",
-			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			inputBody: `{"name":"Testname","surname":"Testsurname","patronymic":"Testpatronymic"}`,
 			mockExistBehavior: func(s *serviceMock.MockUserService) {
-				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(true, nil)
+				s.On("ExistByFullName", entities.FullName{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic"}).Return(true, nil)
 			},
 			mockInfoRequestBehavior: func(s *serviceMock.MockInfoRequestService) {},
 			mockCreateBehavior:      func(s *serviceMock.MockUserService) {},
@@ -90,12 +90,12 @@ func TestHandler_createUser(t *testing.T) {
 		},
 		{
 			testname:  "Info request error",
-			inputBody: `{"name":"testname","surname":"testsurname","patronymic":"testpatronymic"}`,
+			inputBody: `{"name":"Testname","surname":"Testsurname","patronymic":"Testpatronymic"}`,
 			mockExistBehavior: func(s *serviceMock.MockUserService) {
-				s.On("ExistByFullName", entities.FullName{Name: "testname", Surname: "testsurname", Patronymic: "testpatronymic"}).Return(false, nil)
+				s.On("ExistByFullName", entities.FullName{Name: "Testname", Surname: "Testsurname", Patronymic: "Testpatronymic"}).Return(false, nil)
 			},
 			mockInfoRequestBehavior: func(s *serviceMock.MockInfoRequestService) {
-				s.On("RequestAdditionalInfo", "testname").Return(0, "", "", errors.New("api call unreachable"))
+				s.On("RequestAdditionalInfo", "Testname").Return(0, "", "", errors.New("api call unreachable"))
 			},
 			mockCreateBehavior:   func(s *serviceMock.MockUserService) {},
 			expectedStatusCode:   500,

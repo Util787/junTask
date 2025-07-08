@@ -3,7 +3,7 @@ package handlers
 import (
 	"log/slog"
 
-	"github.com/Util787/junTask/internal/logger/sl"
+	"github.com/Util787/user-manager-api/internal/logger/sl"
 	"github.com/gin-gonic/gin"
 )
 

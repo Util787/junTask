@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/Util787/junTask/entities"
+	"github.com/Util787/user-manager-api/entities"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -11,10 +11,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Util787/junTask/entities"
-	"github.com/Util787/junTask/internal/logger/sl"
+	"github.com/Util787/user-manager-api/entities"
+	"github.com/Util787/user-manager-api/internal/logger/sl"
 	"github.com/gin-gonic/gin"
 )
+
+// for validating names, surnames, patronymics
+var nameRe = regexp.MustCompile(`^[A-ZА-ЯЁ][a-zа-яё]{1,49}$`)
 
 // getAllUsers godoc
 // @Summary      get all users with optionally filters and pagination
@@ -345,8 +348,6 @@ func parseInt32(numStr string) (int32, error) {
 	}
 	return int32(parsedNum), nil
 }
-
-var nameRe = regexp.MustCompile(`^[A-ZА-ЯЁ][a-zа-яё]{1,49}$`)
 
 func isValidFullnameField(s string) bool {
 	s = strings.TrimSpace(s)

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/Util787/junTask/entities"
+	"github.com/Util787/user-manager-api/entities"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )

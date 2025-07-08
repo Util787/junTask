@@ -26,8 +26,8 @@ This is a RESTful API for managing users. It features user creation, retrieval, 
 
 ### 1. Clone Repository 📂
 ```bash
-git clone https://github.com/Util787/junTask
-cd junTask
+git clone https://github.com/Util787/user-manager-api
+cd user-manager-api
 ```
 
 ### 2. Configure `.env` ⚙️

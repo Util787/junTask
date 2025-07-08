@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/Util787/junTask/entities"
+	"github.com/Util787/user-manager-api/entities"
 	"github.com/jmoiron/sqlx"
 )
 

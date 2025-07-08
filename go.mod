@@ -1,4 +1,4 @@
-module github.com/Util787/junTask
+module github.com/Util787/user-manager-api
 
 go 1.23.3
 
